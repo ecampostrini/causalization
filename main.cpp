@@ -1,0 +1,60 @@
+
+/*****************************************************************************
+
+    This file is part of Modelica C Compiler.
+
+    Modelica C Compiler is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Modelica C Compiler is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Modelica C Compiler.  If not, see <http://www.gnu.org/licenses/>.
+
+******************************************************************************/
+#include <iostream>
+
+#include <parser/parse.h>
+#include <util/debug.h>
+#include <util/symbol_table.h>
+
+int main(int argc, char** argv){
+	int opt;
+	int r;
+	AST_Class modelica_class;
+
+	while((opt = getopt(argc, argv, "d:")) != -1){
+		switch(opt){
+			case 'd':
+				if(optarg != NULL && isDebugParam(optarg)){
+					debugInit(optarg);		
+				}else{
+					ERROR("Command line option d requires an argument\n");
+				}
+				break;
+		}		
+	}
+	
+	if(optind < argc){
+		modelica_class = parseClass(argv[optind],&r);
+	}else{ 
+		/* si no se especifico un archivo leo de stdin*/
+		modelica_class = parseClass("", &r);	
+	}
+	if(r!=0){
+		return -1;
+	}
+	
+	/* creamos la clase MicroModelica */
+	TypeSymbolTable ty = newTypeSymbolTable();
+	MMO_Class mmo_class = newMMO_Class(modelicaFile, ty); 
+
+
+
+	return 0;
+}
