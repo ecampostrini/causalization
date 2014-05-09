@@ -17,9 +17,19 @@
     along with Modelica C Compiler.  If not, see <http://www.gnu.org/licenses/>.
 
 ******************************************************************************/
+#include <cstdlib>
+#include <stdio.h>
 #include <iostream>
-
+/*
 #include <parser/parse.h>
+#include <util/debug.h>
+#include <util/symbol_table.h>
+#include <mmo/mmo_class.h>
+*/
+#include <parser/parse.h>
+#include <ast/class.h>
+#include <ast/ast_types.h>
+#include <mmo/mmo_class.h>
 #include <util/debug.h>
 #include <util/symbol_table.h>
 
@@ -52,9 +62,15 @@ int main(int argc, char** argv){
 	
 	/* creamos la clase MicroModelica */
 	TypeSymbolTable ty = newTypeSymbolTable();
-	MMO_Class mmo_class = newMMO_Class(modelicaFile, ty); 
+	MMO_Class mmo_class = newMMO_Class(modelica_class, ty); 
 
+	MMO_EquationListIterator mmo_iterator;
+	MMO_EquationList mmo_eqs = mmo_class->getEquations();
 
+	DEBUG('c', "Acausal equations\n");
+	foreach(mmo_iterator, mmo_eqs){
+		DEBUG('c', "%s", current_element(mmo_iterator)->print().c_str());
+	}	
 
 	return 0;
 }
