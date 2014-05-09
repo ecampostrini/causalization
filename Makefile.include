@@ -8,7 +8,7 @@ OBJS_CAUSALIZE2 := $(OBJS_COMMON) \
             util/debug.o \
             causalize/compref_occurrence.o 
 
-bin/causalize: $(OBJS_CAUSALIZE2)
+bin/causalize2: $(OBJS_CAUSALIZE2)
 	$(CXX) $(CXXFLAGS) -o bin/causalize2 $(OBJS_CAUSALIZE2) 
 
 
