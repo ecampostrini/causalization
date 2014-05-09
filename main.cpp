@@ -20,17 +20,12 @@
 #include <cstdlib>
 #include <stdio.h>
 #include <iostream>
-/*
+#include <unistd.h>
+
 #include <parser/parse.h>
 #include <util/debug.h>
-#include <util/symbol_table.h>
 #include <mmo/mmo_class.h>
-*/
-#include <parser/parse.h>
 #include <ast/class.h>
-#include <ast/ast_types.h>
-#include <mmo/mmo_class.h>
-#include <util/debug.h>
 #include <util/symbol_table.h>
 
 int main(int argc, char** argv){
