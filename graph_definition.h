@@ -14,12 +14,12 @@ enum VertexType{E, U};
 /*we use Bundled properties*/
 struct VertexProperties{
 	VertexType type;
-	MMO_Equation eq;
+	MMO_Equation equation;
 	EquationType eqType;
 	AST_String variableName;
 	AST_ExpressionList unknowns;
 	int count; //size of the array or number of equations
-}
+};
 
 /*
 * genericIndex: if the edge represents an occurrence of the form 
@@ -31,7 +31,7 @@ struct VertexProperties{
 struct EdgeProperties{
 	AST_Expression genericIndex; 
 	AST_IntegerSet indexes;
-}
+};
 
 typedef boost::adjacency_list<boost::listS, boost::listS,
 		boost::undirectedS, VertexProperties, EdgeProperties> CausalizationGraph;
