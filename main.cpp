@@ -28,6 +28,10 @@
 #include <ast/class.h>
 #include <util/symbol_table.h>
 
+/*this includes are for a quick test*/
+#include <causalize/causalize2/graph_builder.h>
+#include <causalize/causalize2/graph_definition.h>
+
 int main(int argc, char** argv){
 	int opt;
 	int r;
@@ -66,6 +70,7 @@ int main(int argc, char** argv){
 	foreach(mmo_iterator, mmo_eqs){
 		DEBUG('c', "%s", current_element(mmo_iterator)->print().c_str());
 	}	
-
+	GraphBuilder *gb = new ReducedGraphBuilder(mmo_class);
+	gb->makeGraph();
 	return 0;
 }
