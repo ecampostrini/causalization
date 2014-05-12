@@ -5,24 +5,24 @@
 * we'll have a base abstract class and (maybe) several concrete
 * implementations.
 */
-
+#include <mmo/mmo_class.h>
 #include <causalize/causalize2/graph_definition.h>
 
 
 class GraphBuilder{
 	public: 
-		GraphBuilder(MMO_Class mmo_class){
-			eqList = mmo_class->getEquations();		
-		};
-		~GraphBuilder();
+		GraphBuilder(MMO_Class mmo_cl){mmo_class = mmo_cl;};
+		~GraphBuilder(){};
 		virtual CausalizationGraph makeGraph() = 0;
-	private:
+	protected:
+		MMO_Class mmo_class;
 		CausalizationGraph graph;
-		MMO_EquationList eqList;
 };
 
-class ReducedGraphBuilder : public GraphBuilder{
+class ReducedGraphBuilder:public GraphBuilder{
 	public:
+		ReducedGraphBuilder(MMO_Class mmo_cl);
+		~ReducedGraphBuilder(){};
 		CausalizationGraph makeGraph();
 	private:
 		EquationType getType(MMO_Equation eq);
