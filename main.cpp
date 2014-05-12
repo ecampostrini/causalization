@@ -32,7 +32,7 @@ int main(int argc, char** argv){
 	int opt;
 	int r;
 	AST_Class modelica_class;
-
+	
 	while((opt = getopt(argc, argv, "d:")) != -1){
 		switch(opt){
 			case 'd':
