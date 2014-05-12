@@ -6,7 +6,9 @@ OBJS_CAUSALIZE2 := $(OBJS_COMMON) \
             util/type_check.o \
             util/symbol_table.o \
             util/debug.o \
+			causalize/causalize2/graph_builder.o \
             causalize/compref_occurrence.o 
+
 
 bin/causalize2: $(OBJS_CAUSALIZE2)
 	$(CXX) $(CXXFLAGS) -o bin/causalize2 $(OBJS_CAUSALIZE2) 
