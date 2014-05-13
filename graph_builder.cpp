@@ -53,15 +53,17 @@ ReducedGraphBuilder::getForRangeSize(MMO_Equation eq){
 		it++;
 		if(it == range->end()){
 			/* here temp == the last element and the step is 1 */
+			size++;	
 			while (temp > first){
 				first += 1.;
-				size++;		
+				size++;	
 			}
 		}
 		else{
 			/* here temp == step */
 			AST_Real last;
 			last = eval(current_element(it));		
+			size++;
 			while( last > first){
 				first += temp;		
 				size++;
