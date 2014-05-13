@@ -27,6 +27,7 @@ class ReducedGraphBuilder:public GraphBuilder{
 	private:
 		EquationType getType(MMO_Equation eq);
 		AST_Integer getForRangeSize(MMO_Equation);
+		AST_Integer getDimension(AST_Expression);
 		AST_Real eval(AST_Expression exp);
 		VarSymbolTable symbolTable;
 };
