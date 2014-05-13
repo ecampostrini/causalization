@@ -10,6 +10,11 @@ ReducedGraphBuilder::ReducedGraphBuilder(MMO_Class mmo_cl):GraphBuilder(mmo_cl){
 	symbolTable = mmo_cl->getVarSymbolTable();
 }
 
+ReducedGraphBuilder::~ReducedGraphBuilder(){
+	delete equationDescriptorList;
+	delete unknownDescriptorList;
+}
+
 AST_Integer
 ReducedGraphBuilder::getDimension(AST_Expression modification){
 	EvalExp evaluator(symbolTable);
@@ -84,7 +89,8 @@ ReducedGraphBuilder::getForRangeSize(MMO_Equation eq){
 
 CausalizationGraph 
 ReducedGraphBuilder::makeGraph(){
-	
+	equationDescriptorList = new list<Vertex>();
+	unknownDescriptorList = new list<Vertex>();
 	/* Create nodes for the Equations*/
 	MMO_EquationListIterator it;
 	foreach(it, mmo_class->getEquations()){
@@ -100,7 +106,8 @@ ReducedGraphBuilder::makeGraph(){
 			default:
 				vp->count = 1;
 		}
-		add_vertex(*vp, graph);
+		Vertex eqDescriptor = add_vertex(*vp, graph);
+		equationDescriptorList->push_back(eqDescriptor);
 	}
 
 	/* Create nodes for the unkowns: We iterate through the VarSymbolTable  */
@@ -134,11 +141,16 @@ ReducedGraphBuilder::makeGraph(){
 					vp->isState = false;		
 				}
 				vp->count = getDimension(array_type->dimension());
+				DEBUG('c', "Array %s dimension: %d\n", vp->variableName.c_str(), vp->count);
 			}
 			else{ERROR("ReducedGraphBuilder::makeGraph A variable shouldn't have the type %s at this point. Compiler's mistake.\n", varType->print().c_str());}
+			Vertex unknownDescriptor = add_vertex(*vp, graph);
+			unknownDescriptorList->push_back(unknownDescriptor);
+			DEBUG('c', "Variable %s added to the graph\n", vp->variableName.c_str());
 		}
 	}
-	return graph;
 	/* Create the edges */
+			
+	return graph;
 }
 
