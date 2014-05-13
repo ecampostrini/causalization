@@ -86,8 +86,8 @@ ReducedGraphBuilder::makeGraph(){
 				vp->count = getForRangeSize(vp->equation);
 				DEBUG('c', "ForRange: %d\n", vp->count);
 				break;
-			//default:
-			//	vp->count = 1;
+			default:
+				vp->count = 1;
 		}
 		add_vertex(*vp, graph);
 	}
