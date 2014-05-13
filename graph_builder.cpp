@@ -123,13 +123,16 @@ ReducedGraphBuilder::makeGraph(){
 				
 			}
 			else if(varType->getType() == TYARRAY){
+				Type_Array array_type = varType->getAsArray();
+				if(array_type->arrayOf()->getType() == TYARRAY){
+					ERROR("ReducedGraphBuilder::makeGraph Arrays of arrays are not supported yet\n");			
+				}
 				if(varInfo->isState()){
 					// que hago acaaa!???		
 					vp->isState = true;
 				}else{
 					vp->isState = false;		
 				}
-				Type_Array array_type = varType->getAsArray();
 				vp->count = getDimension(array_type->dimension());
 			}
 			else{ERROR("ReducedGraphBuilder::makeGraph A variable shouldn't have the type %s at this point. Compiler's mistake.\n", varType->print().c_str());}
