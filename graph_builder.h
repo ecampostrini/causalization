@@ -26,5 +26,7 @@ class ReducedGraphBuilder:public GraphBuilder{
 		CausalizationGraph makeGraph();
 	private:
 		EquationType getType(MMO_Equation eq);
-		int processForRange(MMO_Equation);
+		AST_Integer getForRangeSize(MMO_Equation);
+		AST_Real eval(AST_Expression exp);
+		VarSymbolTable symbolTable;
 };

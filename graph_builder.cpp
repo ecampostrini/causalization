@@ -1,21 +1,35 @@
 #include <causalize/causalize2/graph_builder.h>
 #include <boost/graph/adjacency_list.hpp>
 #include <util/ast_util.h>
+#include <mmo/mmo_class.h>
 
 using namespace boost;
 using namespace std;
 
-ReducedGraphBuilder::ReducedGraphBuilder(MMO_Class mmo_cl):GraphBuilder(mmo_cl){}
+ReducedGraphBuilder::ReducedGraphBuilder(MMO_Class mmo_cl):GraphBuilder(mmo_cl){
+	symbolTable = mmo_cl->getVarSymbolTable();
+}
 
-/* We get the expression of the For index, process it
- * and return the range of the variable. We don't check if
- * its a For equation since that was done before the calling
+AST_Real
+ReducedGraphBuilder::eval(AST_Expression exp) {
+	EvalExp evaluator(symbolTable);
+  	AST_Expression result =  evaluator.eval(exp);
+  	ERROR_UNLESS(result->expressionType() == EXPREAL || result->expressionType() == EXPINTEGER, "RangeIterator::getVal:\n"
+      "Expression type should be EXPREAL or EXPINTEGER \n");
+	if (result->expressionType() == EXPREAL) {
+		return result->getAsReal()->val();
+	} else {
+		return result->getAsInteger()->val();
+	}
+}
+
+/* @Return: size of the range of the FOR
  */
 
-
-int 
-ReducedGraphBuilder::processForRange(MMO_Equation eq){
+AST_Integer
+ReducedGraphBuilder::getForRangeSize(MMO_Equation eq){
 	/*casteamos a forEquation y checkeamos que sea un indice aceptable*/	
+	AST_Integer size = 0;
 	AST_Equation_For eqFor = eq->getAsFor();
 	
 	AST_ForIndexLis forIndexList =  forEq->forIndexList();
@@ -25,18 +39,37 @@ ReducedGraphBuilder::processForRange(MMO_Equation eq){
 	AST_Expression inExp = forIndex->in_exp();
 	ExpressionType indexExpType = inExp->expressionType();
 
-	switch(indexExpType){
-		EXPBRACE:
-									
-			break;
-		EXPRANGE:
-			break;
-		default:
-			ERROR("Expression in For Index not supported\n");
-	}
-		
-	/*sacamos el forindex*/
-	/*ast_expression final - ast_expression inicial */
+	if(indexExpType == EXPBRACE){
+		AST_Expression_Brace braceExp = inExp->getAsBrace();
+		size = braceExp->arguments()->size();		
+	}else if(indexExpType == EXPRANGE){
+		/*some definitions*/
+		AST_Real first, temp;
+		AST_Expression_Range rangeExp = inExp->getAsRange();
+		AST_ExpressionList range = rangeExp->expressionList();
+		AST_ExpressionListIterator it = range->begin();
+
+		first = eval(current_element(it))
+		it = range->next();
+		temp = eval(current_element(++it));
+		it++;
+		if(it == range->end());
+			/* here temp == the last element */
+			while (temp > first){
+				first++;
+				size++;		
+			}
+		else{
+			AST_Real step, last;
+			step = temp;
+			last = eval(current_element(it));		
+			while( last > first){
+				first += step;		
+				size++;
+			}
+		}
+	}else{ ERROR("Expression in FOR Index not supported\n");}
+	return size;
 }
 
 CausalizationGraph 
@@ -52,7 +85,7 @@ ReducedGraphBuilder::makeGraph(){
 		/*
 		switch(vp->eqType){
 			EQFOR:
-				vp->count = processForRange(vp->equation);
+				vp->count = getForRangeSize(vp->equation);
 				break;
 			default:
 				vp->count = 1;
@@ -62,7 +95,7 @@ ReducedGraphBuilder::makeGraph(){
 	}
 
 	/* Create nodes for the unkowns: We iterate through the VarSymbolTable  */
-	VarSymbolTable symbolTable= mmo_class->getVarSymbolTable();	
+	//VarSymbolTable symbolTable= mmo_class->getVarSymbolTable();	
 	for(int i = 0; i < symbolTable->count(); i++){
 		VarInfo	varInfo = symbolTable->varInfo(i);
 		if( !varInfo->isConstant() && !varInfo->builtIn()
