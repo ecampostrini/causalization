@@ -28,13 +28,11 @@ ReducedGraphBuilder::eval(AST_Expression exp) {
 
 AST_Integer
 ReducedGraphBuilder::getForRangeSize(MMO_Equation eq){
-	/*casteamos a forEquation y checkeamos que sea un indice aceptable*/	
 	AST_Integer size = 0;
-	AST_Equation_For eqFor = eq->getAsFor();
-	
-	AST_ForIndexLis forIndexList =  forEq->forIndexList();
-	ERROR_UNLESS(forIndexList->size() == 1, "graph_builder:\n For Loop with more
-											than one index is not supported yet\n");
+	AST_Equation_For forEq = eq->getAsFor();
+	AST_ForIndexList forIndexList =  forEq->forIndexList();
+	ERROR_UNLESS(forIndexList->size() == 1, "graph_builder:\n For Loop with more"
+											"than one index is not supported yet\n");
 	AST_ForIndex forIndex = forIndexList->front();
 	AST_Expression inExp = forIndex->in_exp();
 	ExpressionType indexExpType = inExp->expressionType();
@@ -43,28 +41,29 @@ ReducedGraphBuilder::getForRangeSize(MMO_Equation eq){
 		AST_Expression_Brace braceExp = inExp->getAsBrace();
 		size = braceExp->arguments()->size();		
 	}else if(indexExpType == EXPRANGE){
-		/*some definitions*/
+		/*some more definitions*/
 		AST_Real first, temp;
 		AST_Expression_Range rangeExp = inExp->getAsRange();
 		AST_ExpressionList range = rangeExp->expressionList();
 		AST_ExpressionListIterator it = range->begin();
 
-		first = eval(current_element(it))
-		it = range->next();
-		temp = eval(current_element(++it));
+		first = eval(current_element(it));
 		it++;
-		if(it == range->end());
-			/* here temp == the last element */
+		temp = eval(current_element(it));
+		it++;
+		if(it == range->end()){
+			/* here temp == the last element and the step is 1 */
 			while (temp > first){
-				first++;
+				first += 1.;
 				size++;		
 			}
+		}
 		else{
-			AST_Real step, last;
-			step = temp;
+			/* here temp == step */
+			AST_Real last;
 			last = eval(current_element(it));		
 			while( last > first){
-				first += step;		
+				first += temp;		
 				size++;
 			}
 		}
@@ -82,15 +81,14 @@ ReducedGraphBuilder::makeGraph(){
 		vp->type = E;
 		vp->equation = current_element(it);
 		vp->eqType = current_element(it)->equationType();
-		/*
 		switch(vp->eqType){
-			EQFOR:
+			case EQFOR:
 				vp->count = getForRangeSize(vp->equation);
+				DEBUG('c', "ForRange: %d\n", vp->count);
 				break;
-			default:
-				vp->count = 1;
+			//default:
+			//	vp->count = 1;
 		}
-		*/
 		add_vertex(*vp, graph);
 	}
 
