@@ -16,9 +16,11 @@ struct VertexProperties{
 	VertexType type;
 	MMO_Equation equation;
 	EquationType eqType;
-	AST_String variableName;
-	AST_ExpressionList unknowns;
-	int count; //size of the array or number of equations
+	string variableName;
+	AST_Boolean isState;
+	//AST_ExpressionList indexes;	//list of free indexes of the unknowns
+								//or list of indexes of the for (AST_Expression_Int or AST_Expression_Real)
+	AST_Integer count; //size of the array or number of equations
 };
 
 /*
