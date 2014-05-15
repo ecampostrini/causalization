@@ -1,4 +1,6 @@
 #include <causalize/causalize2/graph_builder.h>
+#include <causalize/causalize2/occurrence_checker.h>
+
 #include <boost/graph/adjacency_list.hpp>
 #include <util/ast_util.h>
 #include <mmo/mmo_class.h>
@@ -110,7 +112,8 @@ ReducedGraphBuilder::makeGraph(){
 		equationDescriptorList->push_back(eqDescriptor);
 	}
 
-	/* Create nodes for the unkowns: We iterate through the VarSymbolTable  */
+	/* Create nodes for the unkowns: We iterate through the VarSymbolTable 
+	 * and create one vertex per unknown */
 	for(int i = 0; i < symbolTable->count(); i++){
 		VarInfo	varInfo = symbolTable->varInfo(i);
 		if( !varInfo->isConstant() && !varInfo->builtIn()
@@ -150,7 +153,14 @@ ReducedGraphBuilder::makeGraph(){
 		}
 	}
 	/* Create the edges */
-			
+	list<Vertex>::iterator eqsIt, unIt;
+	Occurrence_checker *oc = new Occurrence_checker(symbolTable);
+	foreach(eqsIt, equationDescriptorList){
+		foreach(unIt,unknownDescriptorList){
+			oc->check_occurrence(graph[current_element(unIt)], graph[current_element(eqsIt)].equation);	
+
+		}		
+	}
 	return graph;
 }
 
