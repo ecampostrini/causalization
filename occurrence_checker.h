@@ -5,20 +5,19 @@
 #include <util/ast_util.h>
 #include <util/symbol_table.h>
 #include <mmo/mmo_class.h>
+#include <causalize/causalize2/graph_definition.h>
 
 class Occurrence_checker : public AST_Expression_Fold<bool>{
 	public:
-		Occurrence_checker(VarSymbolTable sTable){
-			//symbolTable = sTable;
-			equalExp = new EqualExp(sTable)};
-		bool check_occurrence(VertexProperties *variable, VertexProperties *equation);
+		Occurrence_checker(VarSymbolTable sTable);
+		bool check_occurrence(VertexProperties variable, AST_Equation equation);
 		list<EdgeProperties*>* getOccurrenceIndexes();
 	private:
 		virtual bool foldTraverseElement(AST_Expression);
 		virtual bool foldTraverseElementUMinus(AST_Expression);
 		virtual bool foldTraverseElement(bool, bool, BinOpType);
 		EqualExp *equalExp;
-		VertexProperties *variable;
+		VertexProperties variable;
 		AST_Equation equation;
 		//VarSymbolTable symbolTable;
 		list<EdgeProperties*>* occurrenceSetList;
