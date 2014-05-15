@@ -22,7 +22,7 @@ class GraphBuilder{
 class ReducedGraphBuilder:public GraphBuilder{
 	public:
 		ReducedGraphBuilder(MMO_Class mmo_cl);
-		~ReducedGraphBuilder(){};
+		~ReducedGraphBuilder();
 		CausalizationGraph makeGraph();
 	private:
 		EquationType getType(MMO_Equation eq);
@@ -30,4 +30,6 @@ class ReducedGraphBuilder:public GraphBuilder{
 		AST_Integer getDimension(AST_Expression);
 		AST_Real eval(AST_Expression exp);
 		VarSymbolTable symbolTable;
+		list<Vertex>* equationDescriptorList;
+		list<Vertex>* unknownDescriptorList;
 };
