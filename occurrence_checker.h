@@ -11,15 +11,15 @@ class Occurrence_checker : public AST_Expression_Fold<bool>{
 		Occurrence_checker(VarSymbolTable sTable){
 			//symbolTable = sTable;
 			equalExp = new EqualExp(sTable)};
-		bool check_occurrence(AST_String varName,bool isState ,AST_Expression exp);
-		list<AST_IntegerSet>* getOccurrenceIndexes();
+		bool check_occurrence(VertexProperties *variable, VertexProperties *equation);
+		list<EdgeProperties*>* getOccurrenceIndexes();
 	private:
 		virtual bool foldTraverseElement(AST_Expression);
 		virtual bool foldTraverseElementUMinus(AST_Expression);
 		virtual bool foldTraverseElement(bool, bool, BinOpType);
 		EqualExp *equalExp;
-		AST_Expression exp;
+		VertexProperties *variable;
+		AST_Equation equation;
 		//VarSymbolTable symbolTable;
-		list<AST_IntegerSet>* occurrenceSetList;
-		AST_String varName;
+		list<EdgeProperties*>* occurrenceSetList;
 };
