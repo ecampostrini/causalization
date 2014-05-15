@@ -21,6 +21,35 @@ struct VertexProperties{
 	AST_Integer count; //size of the array or number of equations
 };
 
+
+class GenericVertex{
+	public:
+		GenericVertex(VertexType t);
+		VertexType type();
+		void setCount(AST_Integer c);
+		AST_Integer count();
+		/*FALTA HACE LOS CASTEOS DINAMICOS*/
+	protected:
+		VertexType _type;
+		AST_Integer _count;
+};
+
+class EquationVertex: public GenericVertex{
+	public:
+		EquationVertex(MMO_Equation equation);
+		EquationType equationType();
+	private:
+		MMO_Equation equation;
+};
+
+class UnknownVertex : public GenericVertex{
+	public:
+		UnknownVertex(string variableName);
+		void setState();
+		AST_Boolean isState();
+	private:
+		AST_Boolean _isState;
+};
 /*
 * genericIndex: if the edge represents an occurrence of the form 
 * a[i-1] in some equation, then this list contains the expression: i-1.
