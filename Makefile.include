@@ -7,6 +7,7 @@ OBJS_CAUSALIZE2 := $(OBJS_COMMON) \
             util/symbol_table.o \
             util/debug.o \
 			causalize/causalize2/graph_builder.o \
+			causalize/causalize2/occurrence_checker.o\
             causalize/compref_occurrence.o 
 
 
