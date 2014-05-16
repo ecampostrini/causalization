@@ -1,4 +1,5 @@
 #include <causalize/causalize2/occurrence_checker.h>
+
 #include <iostream>
 #include <assert.h>
 using namespace std;
@@ -8,6 +9,7 @@ Occurrence_checker::Occurrence_checker(VarSymbolTable sTable){
 	equalExp = new EqualExp(sTable);
 	evaluator = new EvalExp(sTable);
 	occurrenceSetList = new list<EdgeProperties*>;
+	symbolTable = sTable;
 }
 
 bool
@@ -36,7 +38,6 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 				default:
 					ERROR("Occurrence_checker::check_occurrence: Equation inside of FOR\n"
 					      "not supported");
-
 			}
 			break;
 		}
@@ -44,6 +45,25 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 			ERROR("Occurrence_checker::checl_occurrence: Equation type not suppoorted\n");
 	}
 	return false;
+}
+
+ForIndexIterator *
+Occurrence_checker::processInExp(AST_Expression inExp, VarSymbolTable symbolTable){
+  ForIndexIterator *iterator;
+  switch (inExp->expressionType()) {
+  case EXPRANGE:
+    iterator = new RangeIterator(inExp->getAsRange(), symbolTable);
+    return iterator;
+    break;
+  case EXPBRACE:
+    iterator = new BraceIterator(inExp->getAsBrace());
+    return iterator;
+    break;
+  default:
+    ERROR("process_for_equations:\n"
+        "Equation type not supported in forIndex inExp\n");
+  }
+  return NULL;
 }
 
 AST_Integer 
@@ -60,30 +80,52 @@ Occurrence_checker::evalIndexExpression(AST_Expression exp){
 			ERROR("Occurrence_checker::evalIndexExpression: wrong value returned by the "
 					"evaluator\n");
 	}
-
 	return returnValue;
 }
 
 void
-Occurrence_checker::arrayOccurrence(AST_Expression innerExp){
-		
+Occurrence_checker::arrayOccurrence(AST_Expression_ComponentReference cref_exp){
+	EdgeProperties *newEdge = new EdgeProperties;	
 	switch(equation->equationType()){
 		case EQEQUALITY:{
-			EdgeProperties *newEdge = new EdgeProperties;	
 			newEdge->genericIndex = NULL;
 			//AST_Expression innerExp = exp_cref->indexes()->front()->front();
-			AST_Integer indexVal = evalIndexExpression(innerExp);
+			AST_Integer indexVal = evalIndexExpression(cref_exp->indexes()->front()->front());
 			DEBUG('c', "index inserted: %d\n", indexVal);
 			newEdge->indexes.insert(indexVal);
 			occurrenceSetList->push_back(newEdge);
 			break;
 		}
 		case EQFOR:{
+			newEdge->genericIndex = cref_exp->indexes()->front()->front();
+			AST_Equation_For eqFor = equation->getAsFor();
+			ERROR_UNLESS(eqFor->forIndexList()->size() == 1,
+				"Occurrence_checker::arrayOccurrence:\n"
+				"forIndexList with more than 1 forIndex are not supported yet\n");
+			ForIndexIterator *forIndexIter = processInExp(eqFor->forIndexList()->front()->in_exp(), symbolTable);
+			AST_String indexName = eqFor->forIndexList()->front()->variable();
+			AST_Expression_ComponentReference compRef = (AST_Expression_ComponentReference) newAST_Expression_ComponentReferenceExp(indexName);
+			while(forIndexIter->hasNext()){
+				AST_Real indexVal = forIndexIter->next();
+				AST_Expression_Integer indexExp = (AST_Expression_Integer) newAST_Expression_Integer(static_cast<AST_Integer>(indexVal));
+				AST_Expression result = evaluator->eval(compRef, indexExp, cref_exp->indexes()->front()->front());
+				switch(result->expressionType()){
+					case EXPINTEGER:{
+						AST_Integer val = result->getAsInteger()->val(); 
+						cout << cref_exp->indexes()->front()->front()->print() << ":" << val << endl;
+						newEdge->indexes.insert(val);
+						break;
+					}
+					default:
+						assert(0);
+				}
+			}
 			break;
 		}
 		default:		
 			ERROR("Occurrence_checker::foldTraverseElement: equation not supported, compiler's mistake\n");
 		}
+		occurrenceSetList->push_back(newEdge);
 }
 
 /*supongo que si llegue hasta aca la expression no 
@@ -106,7 +148,7 @@ Occurrence_checker::foldTraverseElement(AST_Expression exp){
 			}
 			if(!exp_cref->indexes()->front()->empty()){
 				/*if its an array*/
-				arrayOccurrence(exp_cref->indexes()->front()->front());
+				arrayOccurrence(exp_cref);
 			}
 			return true;
 			break;
