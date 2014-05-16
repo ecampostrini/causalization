@@ -12,26 +12,36 @@ Occurrence_checker::Occurrence_checker(VarSymbolTable sTable){
 	symbolTable = sTable;
 }
 
+list<EdgeProperties*>*
+Occurrence_checker::getOccurrenceIndexes(){
+	return occurrenceSetList;		
+}
+
 bool
 Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 	variable = var;
 	equation = eq;
+	occurrenceSetList->clear();
 	switch(eq->equationType()){
 		case EQEQUALITY:{
 			AST_Equation_Equality eqEquality = eq->getAsEquality();
-			return foldTraverse(eqEquality->left()) || foldTraverse(eqEquality->right());
+			bool left = foldTraverse(eqEquality->left());
+			bool right = foldTraverse(eqEquality->right());
+			return left || right;
 			break;
 		}
 		case EQFOR:{
 			AST_Equation_For eqFor = eq->getAsFor();
-			/*for the moment we just handle FORS with 1 equationi
+			/*for the moment we just handle FORS with 1 equation
 			 * and we suppose there are no nested loops */
 			assert(eqFor->equationList()->size() == 1);
 			AST_Equation insideEq = eqFor->equationList()->front();
 			switch(insideEq->equationType()){
 				case EQEQUALITY:{		
 					AST_Equation_Equality eqEquality = insideEq->getAsEquality();
-					return foldTraverse(eqEquality->left()) || foldTraverse(eqEquality->right());
+					bool left = foldTraverse(eqEquality->left());
+					bool right = foldTraverse(eqEquality->right());
+					return left || right;
 				}
 				case EQFOR:
 					ERROR("Occurrence_checker::check_occurrence: Nested fors not supported yet\n");
@@ -89,11 +99,9 @@ Occurrence_checker::arrayOccurrence(AST_Expression_ComponentReference cref_exp){
 	switch(equation->equationType()){
 		case EQEQUALITY:{
 			newEdge->genericIndex = NULL;
-			//AST_Expression innerExp = exp_cref->indexes()->front()->front();
 			AST_Integer indexVal = evalIndexExpression(cref_exp->indexes()->front()->front());
-			DEBUG('c', "index inserted: %d\n", indexVal);
+			DEBUG('c', "Index inserted: %d\n", indexVal);
 			newEdge->indexes.insert(indexVal);
-			occurrenceSetList->push_back(newEdge);
 			break;
 		}
 		case EQFOR:{
@@ -112,8 +120,8 @@ Occurrence_checker::arrayOccurrence(AST_Expression_ComponentReference cref_exp){
 				switch(result->expressionType()){
 					case EXPINTEGER:{
 						AST_Integer val = result->getAsInteger()->val(); 
-						cout << cref_exp->indexes()->front()->front()->print() << ":" << val << endl;
 						newEdge->indexes.insert(val);
+						DEBUG('c', "Index inserted: %d\n",  val);
 						break;
 					}
 					default:
@@ -128,18 +136,18 @@ Occurrence_checker::arrayOccurrence(AST_Expression_ComponentReference cref_exp){
 		occurrenceSetList->push_back(newEdge);
 }
 
-/*supongo que si llegue hasta aca la expression no 
-* continene operaciones binarias ni tampoco menos unarios.
-* Suponiendo esto paso a checkear los 4 tipos posibles de
-* expressiones en esta etapa: COMPREFERENCE, DERIVATIVE,
-* EXPREAL Y EXPINTEGER
-*/	
+/* If we got to this point then the expression doesn't 
+ * contain binops nor unary minuses. Assuming this, we
+ * just check for the 4 possible expressions we can have:
+ * EXPCOMPREF, EXPDERIVATIVE, EXPREAL and EXPINTEGER
+*/
 
 bool
 Occurrence_checker::foldTraverseElement(AST_Expression exp){
 	switch(exp->expressionType()){
 		case EXPCOMPREF:{
 			AST_Expression_ComponentReference exp_cref = exp->getAsComponentReference();
+			if(exp_cref->names()->front()->compare(variable.variableName)){break;}
 			if(exp_cref->indexes()->size() > 1 || exp_cref->indexes()->front()->size() > 1){
 				ERROR("Occurrence_checker::foldTraverseElement:\n"
 						"Expression : %s\n"
@@ -149,15 +157,24 @@ Occurrence_checker::foldTraverseElement(AST_Expression exp){
 			if(!exp_cref->indexes()->front()->empty()){
 				/*if its an array*/
 				arrayOccurrence(exp_cref);
+			}else{
+				/*if its a simple var we don't care in what kind of equation it
+				 * appears */
+				EdgeProperties *newEdge = new EdgeProperties;
+				newEdge->genericIndex = NULL;
+				occurrenceSetList->push_back(newEdge);
 			}
+
 			return true;
 			break;
 		}		
 		case EXPDERIVATIVE:
 			break;
 		default:
-			/*nada por ahora -> posiblemente: return false*/
+			/*nothing for the moment -> possibly: return false*/
+
 			assert(exp->expressionType() == EXPREAL || exp->expressionType() == EXPINTEGER);
+			return false;
 	}
 	return false;
 }
