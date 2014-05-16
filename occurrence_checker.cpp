@@ -64,6 +64,27 @@ Occurrence_checker::evalIndexExpression(AST_Expression exp){
 	return returnValue;
 }
 
+void
+Occurrence_checker::arrayOccurrence(AST_Expression innerExp){
+		
+	switch(equation->equationType()){
+		case EQEQUALITY:{
+			EdgeProperties *newEdge = new EdgeProperties;	
+			newEdge->genericIndex = NULL;
+			//AST_Expression innerExp = exp_cref->indexes()->front()->front();
+			AST_Integer indexVal = evalIndexExpression(innerExp);
+			DEBUG('c', "index inserted: %d\n", indexVal);
+			newEdge->indexes.insert(indexVal);
+			occurrenceSetList->push_back(newEdge);
+			break;
+		}
+		case EQFOR:{
+			break;
+		}
+		default:		
+			ERROR("Occurrence_checker::foldTraverseElement: equation not supported, compiler's mistake\n");
+		}
+}
 
 /*supongo que si llegue hasta aca la expression no 
 * continene operaciones binarias ni tampoco menos unarios.
@@ -83,55 +104,10 @@ Occurrence_checker::foldTraverseElement(AST_Expression exp){
 						"For the momento just variables of the form 'a' or a[index]\n", 
 						exp_cref->print().c_str());
 			}
-			/*if its an array*/
 			if(!exp_cref->indexes()->front()->empty()){
-				/*we process according to the kind of equation we have */
-				switch(equation->equationType()){
-					case EQEQUALITY:{
-						EdgeProperties *newEdge = new EdgeProperties;	
-						newEdge->genericIndex = NULL;
-						AST_Expression innerExp = exp_cref->indexes()->front()->front();
-						if(innerExp->expressionType() == EXPINTEGER 
-								|| innerExp->expressionType() == EXPREAL){
-							/*if its a number we add it right away*/
-							AST_Expression_Integer intExp = exp_cref->indexes()->front()->front()->getAsInteger();
-							DEBUG('c', "Edge weight: %d\n", intExp->val());
-							newEdge->indexes.insert(intExp->val());
-						}else{
-							/*if its an expression we evaluate it first*/
-							AST_Expression indexVal = evaluator->eval(innerExp);
-							switch(indexVal->expressionType()){
-								case EXPINTEGER:
-								case EXPREAL:
-								{
-									DEBUG('c', "Edge weightlalala: %d\n", indexVal->getAsInteger()->val());
-									newEdge->indexes.insert(indexVal->getAsInteger()->val());
-									break;
-								}		
-
-								default:
-									ERROR("Occurrence_checker::foldTraverseElement: shouldn't be here. Compiler's mistake\n");
-							}
-							
-						}
-
-						//assert(innerVarType == EXPINTEGER || innerVarType == EXPREAL);
-						occurrenceSetList->push_back(newEdge);
-						break;
-						}
-					case EQFOR:{
-						break;
-						}
-					default:		
-						ERROR("Occurrence_checker::foldTraverseElement: equation not supported, compiler's mistake\n");
-				}
+				/*if its an array*/
+				arrayOccurrence(exp_cref->indexes()->front()->front());
 			}
-			/*if(equation->equationType() == EQEQUALITY){
-				//assert (exp_cref->indexes()->front()->empty() && variable.count == 1);
-				if(exp_cref->name().compare(variable.variableName))
-					DEBUG('c', "EXPCOMPREF: %s\n", exp_cref->name().c_str());
-
-			}*/
 			return true;
 			break;
 		}		
