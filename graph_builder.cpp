@@ -157,8 +157,25 @@ ReducedGraphBuilder::makeGraph(){
 	Occurrence_checker *oc = new Occurrence_checker(symbolTable);
 	foreach(eqsIt, equationDescriptorList){
 		foreach(unIt,unknownDescriptorList){
-			oc->check_occurrence(graph[current_element(unIt)], graph[current_element(eqsIt)].equation);	
-
+			DEBUG('c', "Checking for variable: %s \n", graph[current_element(unIt)].variableName.c_str());
+			if(oc->check_occurrence(graph[current_element(unIt)], graph[current_element(eqsIt)].equation)){
+				list<EdgeProperties*>* edgeList = oc->getOccurrenceIndexes();
+				list<EdgeProperties*>::iterator edgeIt = edgeList->begin();
+				DEBUG('c', "Number of edges: %d\n", edgeList->size());
+				foreach(edgeIt,edgeList){
+					Edge descriptor;
+					bool result;
+					tie(descriptor, result) = add_edge(current_element(eqsIt),current_element(unIt),current_element(*edgeIt), graph);
+					/*AST_IntegerSet::iterator setIt = graph[descriptor].indexes.begin();
+					for(setIt = graph[descriptor].indexes.begin(); setIt != graph[descriptor].indexes.end(); setIt++){
+						cout << *setIt << endl;		
+					}
+					cout << descriptor << endl;*/
+					if(!result){
+						ERROR("makeGraph: Error while adding the edges to the graph\n");
+					}
+				}
+			}
 		}		
 	}
 	return graph;
