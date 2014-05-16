@@ -16,7 +16,9 @@ class Occurrence_checker : public AST_Expression_Fold<bool>{
 		virtual bool foldTraverseElement(AST_Expression);
 		virtual bool foldTraverseElementUMinus(AST_Expression);
 		virtual bool foldTraverseElement(bool, bool, BinOpType);
+		AST_Integer evalIndexExpression();
 		EqualExp *equalExp;
+		EvalExp *evaluator;
 		VertexProperties variable;
 		AST_Equation equation;
 		//VarSymbolTable symbolTable;
