@@ -5,6 +5,12 @@
 #include <util/ast_util.h>
 #include <mmo/mmo_class.h>
 
+#ifdef ENABLE_DEBUG_MSG
+#define DEBUG_MSG(str) do {std::cout << str << std::endl;} while( false )
+#else
+#define DEBUG_MSG(str) do {} while( false )
+#endif
+
 using namespace boost;
 using namespace std;
 
@@ -96,6 +102,7 @@ ReducedGraphBuilder::makeGraph(){
 	/* Create nodes for the Equations*/
 	MMO_EquationListIterator it;
 	foreach(it, mmo_class->getEquations()){
+		static AST_Integer index = 0;
 		VertexProperties *vp = new VertexProperties;
 		vp->type = E;
 		vp->equation = current_element(it);
@@ -103,11 +110,12 @@ ReducedGraphBuilder::makeGraph(){
 		switch(vp->eqType){
 			case EQFOR:
 				vp->count = getForRangeSize(vp->equation);
-				DEBUG('c', "ForRange: %d\n", vp->count);
+				//DEBUG('g', "ForRange: %d\n", vp->count);
 				break;
 			default:
 				vp->count = 1;
 		}
+		vp->index = index++;
 		Vertex eqDescriptor = add_vertex(*vp, graph);
 		equationDescriptorList->push_back(eqDescriptor);
 	}
@@ -115,6 +123,7 @@ ReducedGraphBuilder::makeGraph(){
 	/* Create nodes for the unkowns: We iterate through the VarSymbolTable 
 	 * and create one vertex per unknown */
 	for(int i = 0; i < symbolTable->count(); i++){
+		static AST_Integer index = 0;
 		VarInfo	varInfo = symbolTable->varInfo(i);
 		if( !varInfo->isConstant() && !varInfo->builtIn()
 			&& !varInfo->isDiscrete() && !varInfo->isParameter()){
@@ -144,24 +153,41 @@ ReducedGraphBuilder::makeGraph(){
 					vp->isState = false;		
 				}
 				vp->count = getDimension(array_type->dimension());
-				DEBUG('c', "Array %s dimension: %d\n", vp->variableName.c_str(), vp->count);
+				//DEBUG('g', "Array %s dimension: %d\n", vp->variableName.c_str(), vp->count);
 			}
 			else{ERROR("ReducedGraphBuilder::makeGraph A variable shouldn't have the type %s at this point. Compiler's mistake.\n", varType->print().c_str());}
+			vp->index = index++;
 			Vertex unknownDescriptor = add_vertex(*vp, graph);
 			unknownDescriptorList->push_back(unknownDescriptor);
-			DEBUG('c', "Variable %s added to the graph\n", vp->variableName.c_str());
+			//DEBUG('g', "Variable %s added to the graph\n", vp->variableName.c_str());
 		}
 	}
+
+
 	/* Create the edges */
 	list<Vertex>::iterator eqsIt, unIt;
+	
+	#ifdef ENABLE_DEBUG_MSG
+	if(debugIsEnabled('g')){
+		DEBUG_MSG("Equations");
+		foreach(eqsIt, equationDescriptorList){
+			DEBUG_MSG(graph[current_element(eqsIt)].index << ": " << graph[current_element(eqsIt)].equation->print()) ;
+		}
+		DEBUG_MSG("Unknowns");
+		foreach(unIt, unknownDescriptorList){
+			DEBUG_MSG(graph[current_element(unIt)].index << ": " << graph[current_element(unIt)].variableName) ;
+		}
+	}
+	#endif
+	
 	Occurrence_checker *oc = new Occurrence_checker(symbolTable);
+	DEBUG('g', "Adjacency list as (equation_index, unknown_index, number_of_edges)\n");
 	foreach(eqsIt, equationDescriptorList){
 		foreach(unIt,unknownDescriptorList){
-			DEBUG('c', "Checking for variable: %s \n", graph[current_element(unIt)].variableName.c_str());
 			if(oc->check_occurrence(graph[current_element(unIt)], graph[current_element(eqsIt)].equation)){
 				list<EdgeProperties*>* edgeList = oc->getOccurrenceIndexes();
 				list<EdgeProperties*>::iterator edgeIt = edgeList->begin();
-				DEBUG('c', "Number of edges: %d\n", edgeList->size());
+				DEBUG('g', "(%d, %d, %d) ", graph[current_element(eqsIt)].index ,graph[current_element(unIt)].index,edgeList->size());
 				foreach(edgeIt,edgeList){
 					Edge descriptor;
 					bool result;
@@ -178,6 +204,7 @@ ReducedGraphBuilder::makeGraph(){
 			}
 		}		
 	}
+	DEBUG('g', "\n");
 	return graph;
 }
 

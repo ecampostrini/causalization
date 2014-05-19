@@ -19,8 +19,30 @@ struct VertexProperties{
 	string variableName;
 	AST_Boolean isState;
 	AST_Integer count; //size of the array or number of equations
+	AST_Integer index; //for debug purposes
 };
 
+
+
+/*
+* genericIndex: if the edge represents an occurrence of the form 
+* a[i-1] in some equation, then this list contains the expression: i-1.
+* indexes: it contains the number of indexes of a variable (in case it is
+* an array) that are used in the equation connected by the edge.
+*/
+
+struct EdgeProperties{
+	AST_Expression genericIndex; 
+	AST_IntegerSet indexes;
+	AST_Integer index; //for debug purposes
+};
+
+typedef boost::adjacency_list<boost::listS, boost::listS,
+		boost::undirectedS, VertexProperties, EdgeProperties> CausalizationGraph;
+typedef CausalizationGraph::vertex_descriptor Vertex;
+typedef CausalizationGraph::edge_descriptor Edge;
+
+/*Classes for a potential redefinition of the Bundled properties*/
 
 class GenericVertex{
 	public:
@@ -50,21 +72,5 @@ class UnknownVertex : public GenericVertex{
 	private:
 		AST_Boolean _isState;
 };
-/*
-* genericIndex: if the edge represents an occurrence of the form 
-* a[i-1] in some equation, then this list contains the expression: i-1.
-* indexes: it contains the number of indexes of a variable (in case it is
-* an array) that are used in the equation connected by the edge.
-*/
-
-struct EdgeProperties{
-	AST_Expression genericIndex; 
-	AST_IntegerSet indexes;
-};
-
-typedef boost::adjacency_list<boost::listS, boost::listS,
-		boost::undirectedS, VertexProperties, EdgeProperties> CausalizationGraph;
-typedef CausalizationGraph::vertex_descriptor Vertex;
-typedef CausalizationGraph::edge_descriptor Edge;
 
 #endif

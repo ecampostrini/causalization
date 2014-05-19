@@ -57,23 +57,23 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 	return false;
 }
 
-ForIndexIterator *
+ForIndexIterator*
 Occurrence_checker::processInExp(AST_Expression inExp, VarSymbolTable symbolTable){
-  ForIndexIterator *iterator;
-  switch (inExp->expressionType()) {
-  case EXPRANGE:
-    iterator = new RangeIterator(inExp->getAsRange(), symbolTable);
-    return iterator;
-    break;
-  case EXPBRACE:
-    iterator = new BraceIterator(inExp->getAsBrace());
-    return iterator;
-    break;
-  default:
-    ERROR("process_for_equations:\n"
-        "Equation type not supported in forIndex inExp\n");
-  }
-  return NULL;
+	ForIndexIterator *iterator;
+	switch(inExp->expressionType()){
+		case EXPRANGE:
+			iterator = new RangeIterator(inExp->getAsRange(), symbolTable);
+				return iterator;
+				break;
+		case EXPBRACE:
+			iterator = new BraceIterator(inExp->getAsBrace());
+			return iterator;
+			break;
+			default:
+				ERROR("process_for_equations:\n"
+					"Equation type not supported in forIndex inExp\n");
+	}
+	return NULL;
 }
 
 AST_Integer 
@@ -141,7 +141,6 @@ Occurrence_checker::arrayOccurrence(AST_Expression_ComponentReference cref_exp){
  * just check for the 4 possible expressions we can have:
  * EXPCOMPREF, EXPDERIVATIVE, EXPREAL and EXPINTEGER
 */
-
 bool
 Occurrence_checker::foldTraverseElement(AST_Expression exp){
 	switch(exp->expressionType()){
@@ -172,7 +171,6 @@ Occurrence_checker::foldTraverseElement(AST_Expression exp){
 			break;
 		default:
 			/*nothing for the moment -> possibly: return false*/
-
 			assert(exp->expressionType() == EXPREAL || exp->expressionType() == EXPINTEGER);
 			return false;
 	}
