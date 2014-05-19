@@ -1,3 +1,4 @@
+CAUSALIZE2FLAGS = -DENABLE_DEBUG_MSG
 OBJS_CAUSALIZE2 := $(OBJS_COMMON) \
             causalize/causalize2/main.o \
             mmo/mmo_class.o \
@@ -8,11 +9,12 @@ OBJS_CAUSALIZE2 := $(OBJS_COMMON) \
             util/debug.o \
 			causalize/causalize2/graph_builder.o \
 			causalize/causalize2/occurrence_checker.o\
+			causalize/causalize2/graph_printer.o\
             causalize/compref_occurrence.o \
 			causalize/for_unrolling/for_index_iterator.o
 
 
 bin/causalize2: $(OBJS_CAUSALIZE2)
-	$(CXX) $(CXXFLAGS) -o bin/causalize2 $(OBJS_CAUSALIZE2) 
+	$(CXX) $(CXXFLAGS) $(CAUSALIZE2FLAGS) -o bin/causalize2 $(OBJS_CAUSALIZE2) 
 
 
