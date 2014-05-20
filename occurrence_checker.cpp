@@ -100,7 +100,7 @@ Occurrence_checker::arrayOccurrence(AST_Expression_ComponentReference cref_exp){
 		case EQEQUALITY:{
 			newEdge->genericIndex = NULL;
 			AST_Integer indexVal = evalIndexExpression(cref_exp->indexes()->front()->front());
-			DEBUG('c', "Index inserted: %d\n", indexVal);
+			//DEBUG('c', "Index inserted: %d\n", indexVal);
 			newEdge->indexes.insert(indexVal);
 			break;
 		}
@@ -121,7 +121,7 @@ Occurrence_checker::arrayOccurrence(AST_Expression_ComponentReference cref_exp){
 					case EXPINTEGER:{
 						AST_Integer val = result->getAsInteger()->val(); 
 						newEdge->indexes.insert(val);
-						DEBUG('c', "Index inserted: %d\n",  val);
+						//DEBUG('c', "Index inserted: %d\n",  val);
 						break;
 					}
 					default:
@@ -171,6 +171,7 @@ Occurrence_checker::foldTraverseElement(AST_Expression exp){
 			break;
 		default:
 			/*nothing for the moment -> possibly: return false*/
+			//cout << exp->print() << ", " << exp->expressionType() << endl;
 			assert(exp->expressionType() == EXPREAL || exp->expressionType() == EXPINTEGER);
 			return false;
 	}
