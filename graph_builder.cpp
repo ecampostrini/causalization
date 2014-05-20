@@ -1,5 +1,6 @@
 #include <causalize/causalize2/graph_builder.h>
 #include <causalize/causalize2/occurrence_checker.h>
+#include <causalize/causalize2/graph_printer.h>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <util/ast_util.h>
@@ -181,26 +182,36 @@ ReducedGraphBuilder::makeGraph(){
 	#endif
 	
 	Occurrence_checker *oc = new Occurrence_checker(symbolTable);
-	DEBUG('g', "Adjacency list as (equation_index, unknown_index, number_of_edges)\n");
+	DEBUG('g', "Adjacency list as (equation_index, unknown_index, number_of_edges) {genericIndex of each edge}:\n");
 	foreach(eqsIt, equationDescriptorList){
 		foreach(unIt,unknownDescriptorList){
 			if(oc->check_occurrence(graph[current_element(unIt)], graph[current_element(eqsIt)].equation)){
 				list<EdgeProperties*>* edgeList = oc->getOccurrenceIndexes();
 				list<EdgeProperties*>::iterator edgeIt = edgeList->begin();
-				DEBUG('g', "(%d, %d, %d) ", graph[current_element(eqsIt)].index ,graph[current_element(unIt)].index,edgeList->size());
 				foreach(edgeIt,edgeList){
 					Edge descriptor;
 					bool result;
-					tie(descriptor, result) = add_edge(current_element(eqsIt),current_element(unIt),current_element(*edgeIt), graph);
-					/*AST_IntegerSet::iterator setIt = graph[descriptor].indexes.begin();
-					for(setIt = graph[descriptor].indexes.begin(); setIt != graph[descriptor].indexes.end(); setIt++){
-						cout << *setIt << endl;		
-					}
-					cout << descriptor << endl;*/
+					tie(descriptor, result) = add_edge(current_element(eqsIt),current_element(unIt),*current_element(edgeIt), graph);
 					if(!result){
 						ERROR("makeGraph: Error while adding the edges to the graph\n");
 					}
 				}
+				#ifdef ENABLE_DEBUG_MSG
+				DEBUG('g', "(%d, %d, %d), ", graph[current_element(eqsIt)].index ,graph[current_element(unIt)].index,edgeList->size());
+				graph_traits<CausalizationGraph>::out_edge_iterator begin, end;			
+				stringstream stri;
+				tie(begin, end) = out_edges(current_element(eqsIt), graph);
+				stri << "{";
+				while(begin!=end){
+					if( graph[current_element(begin)].genericIndex != NULL){
+						if(!stri.str().empty()) stri << ", ";
+						stri << graph[current_element(begin)].genericIndex->print();
+					}
+					begin++;
+				}
+				stri << "}";
+				cout << stri.str() << endl;
+				#endif
 			}
 		}		
 	}
