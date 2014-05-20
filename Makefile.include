@@ -10,6 +10,7 @@ OBJS_CAUSALIZE2 := $(OBJS_COMMON) \
 			causalize/causalize2/graph_builder.o \
 			causalize/causalize2/occurrence_checker.o\
 			causalize/causalize2/graph_printer.o\
+			causalize/causalize2/causalization_algorithm.o\
             causalize/compref_occurrence.o \
 			causalize/for_unrolling/for_index_iterator.o
 
