@@ -31,6 +31,8 @@
 /*this includes are for a quick test*/
 #include <causalize/causalize2/graph_builder.h>
 #include <causalize/causalize2/graph_definition.h>
+#include <causalize/causalize2/graph_printer.h>
+#include <causalize/causalize2/causalization_algorithm.h>
 
 int main(int argc, char** argv){
 	int opt;
@@ -71,6 +73,10 @@ int main(int argc, char** argv){
 		DEBUG('c', "%s", current_element(mmo_iterator)->print().c_str());
 	}	
 	GraphBuilder *gb = new ReducedGraphBuilder(mmo_class);
-	gb->makeGraph();
+	CausalizationGraph g = gb->makeGraph();
+	CausalizationStrategy *cs = new CausalizationStrategy(g);
+	cs->causalize();
+	//GraphPrinter gp;
+	//gp.printGraph();
 	return 0;
 }
