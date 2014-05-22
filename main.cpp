@@ -74,7 +74,7 @@ int main(int argc, char** argv){
 	}	
 	GraphBuilder *gb = new ReducedGraphBuilder(mmo_class);
 	CausalizationGraph g = gb->makeGraph();
-	CausalizationStrategy *cs = new CausalizationStrategy(g);
+	CausalizationStrategy *cs = new CausalizationStrategy(g, mmo_class->name(), gb->getUnknownList());
 	cs->causalize();
 	//GraphPrinter gp;
 	//gp.printGraph();
