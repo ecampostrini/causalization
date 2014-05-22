@@ -8,7 +8,7 @@ class CausalizationStrategy{
 		MMO_EquationList getEquations();
 	private:
 		void remove_edge_from_array(Vertex, Edge);
-		void remove_edge_from_array(Edge, multimap<Edge, Vertex>);
+		void remove_edge_from_array(Edge, map<Edge, Vertex>);
 		CausalizationGraph graph;
 		MMO_EquationList equations1toN;
 		MMO_EquationList equationsNto1;
