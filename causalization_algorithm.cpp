@@ -64,7 +64,7 @@ CausalizationStrategy::causalize(){
 					equationDescriptors->erase(iter);
 				}
 			}else if(out_degree(eq, graph) == 0){
-				ERROR("Problem is singular, not supported yet\n");		
+				ERROR("Problem is singular, not supported yet\n");
 			}
 		}else if(eqType == EQFOR){
 			if(out_degree(eq,graph) == 1){
@@ -86,13 +86,25 @@ CausalizationStrategy::causalize(){
 				}
 			}else{
 				/*if only one of the edges has weight == size of for range
-				* then thats the one we are causalizing */		
-				CausalizationGraph::edge_iterator begin, end;
-				Edge e = null_vertex(); 
-				for(tie(begin, end) = out_edges(eq, graph); begin != end; begin++){
-					Edge e = *begin;		
+				* then thats the one we are causalizing */
+				CausalizationGraph::edge_iterator begin, end, it;
+				Edge targetEdge; 
+				//Vertex causalizedUnknown;
+				AST_Integer sameWeight = 0;
+				map<Edge, Vertex> toRemove;
+				tie(begin, end) = out_edges(eq, graph);
+				for(it = begin; it != end; it++){
+					Edge e = *it;
 					Vertex unknown = target(e, graph);
-					if(e.indexes.size() == )
+					toRemove.insert(tie(e, unknown));
+					if(e.indexes.size() == eq.count && sameWeight++ == 0){ 
+						targetEdge = e;
+						//causalizedUnknown = unknown;
+					}
+				}
+				if(sameWeight == 1){
+					/*TODO Makecausal*/
+					remove_edge_from_array(targetEdge,toRemove);
 				}
 			}
 		}else{
@@ -100,4 +112,12 @@ CausalizationStrategy::causalize(){
 			      "Equation type not supported\n");		
 		}
 	}
+}
+void
+CausalizationStrategy::remove_edge_from_array(Edge targetEdge, map<Edge, Vertex> toRemove){
+		
+}
+void
+CausalizationStrategy::remove_edge_from_array(Vertex targetVertex, Edge targetEdge){
+
 }
