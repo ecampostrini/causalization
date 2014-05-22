@@ -3,8 +3,11 @@
 #include <boost/lambda/lambda.hpp>
 using namespace boost;
 
-CausalizationStrategy::CausalizationStrategy(CausalizationGraph g){
+CausalizationStrategy::CausalizationStrategy(CausalizationGraph g, AST_String name, AST_ExpressionList unknowns){
 	graph = g;
+	cl = newAST_ClassList();
+	_unknowns = unknowns;
+	_name = name;
 	equations1toN = (MMO_EquationList) newMMO_EquationList;
 	equationsNto1 = (MMO_EquationList) newMMO_EquationList;
 	equationDescriptors = new list<Vertex>();
@@ -39,7 +42,8 @@ CausalizationStrategy::remove_edge_from_array(Edge targetEdge, map<Edge, Vertex>
 }
 void
 CausalizationStrategy::remove_edge_from_array(Vertex targetVertex, Edge targetEdge){
-
+	
+	
 }
 
 void
