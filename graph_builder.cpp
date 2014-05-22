@@ -17,6 +17,7 @@ using namespace std;
 
 ReducedGraphBuilder::ReducedGraphBuilder(MMO_Class mmo_cl):GraphBuilder(mmo_cl){
 	symbolTable = mmo_cl->getVarSymbolTable();
+	unknownList = newAST_ExpressionList();
 }
 
 ReducedGraphBuilder::~ReducedGraphBuilder(){
@@ -96,7 +97,7 @@ ReducedGraphBuilder::getForRangeSize(MMO_Equation eq){
 }
 
 
-CausalizationGraph 
+CausalizationGraph
 ReducedGraphBuilder::makeGraph(){
 	equationDescriptorList = new list<Vertex>();
 	unknownDescriptorList = new list<Vertex>();
@@ -134,9 +135,11 @@ ReducedGraphBuilder::makeGraph(){
 			vp->type = U;
 			vp->variableName = symbolTable->key(i);
 			if(varType->getType() == TYREAL){
+				AST_Expression_ComponentReference compRef = (AST_Expression_ComponentReference)newAST_Expression_ComponentReferenceExp(newAST_String(symbolTable->key(i)));
 				if(varInfo->isState()){
 					vp->isState = true;
 				}else{
+					unknownList->push_back(compRef);		
 					vp->isState = false;
 				}
 				vp->count = 1;
@@ -219,3 +222,6 @@ ReducedGraphBuilder::makeGraph(){
 	return graph;
 }
 
+AST_ExpressionList getUnknownList(){
+	return unknownList;		
+}
