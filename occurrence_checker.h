@@ -7,6 +7,7 @@
 #include <mmo/mmo_class.h>
 #include <causalize/causalize2/graph_definition.h>
 #include <causalize/for_unrolling/for_index_iterator.h>
+#include <boost/icl/discrete_interval.hpp>
 
 class Occurrence_checker : public AST_Expression_Fold<bool>{
 	public:
@@ -18,9 +19,9 @@ class Occurrence_checker : public AST_Expression_Fold<bool>{
 		virtual bool foldTraverseElement(AST_Expression);
 		virtual bool foldTraverseElementUMinus(AST_Expression);
 		virtual bool foldTraverseElement(bool, bool, BinOpType);
-		AST_Integer evalIndexExpression(AST_Expression);
 		void arrayOccurrence(AST_Expression_ComponentReference);
-		ForIndexIterator* processInExp(AST_Expression, VarSymbolTable);
+		pair<AST_Integer, AST_Integer> get_for_range(AST_Expression, VarSymbolTable);
+		void add_generic_index(AST_Expression);
 		/*fields*/
 		EqualExp *equalExp;
 		EvalExp *evaluator;
@@ -28,4 +29,8 @@ class Occurrence_checker : public AST_Expression_Fold<bool>{
 		AST_Equation equation;
 		list<EdgeProperties*>* occurrenceSetList;
 		VarSymbolTable symbolTable;
+
+		set< pair<AST_Integer, AST_Integer> > genericIndexSet;
+		boost::icl::discrete_interval<AST_Integer> indexes;
+		set<AST_Integer> simpleIndex;
 };
