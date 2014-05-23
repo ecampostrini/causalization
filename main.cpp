@@ -72,11 +72,11 @@ int main(int argc, char** argv){
 	foreach(mmo_iterator, mmo_eqs){
 		DEBUG('c', "%s", current_element(mmo_iterator)->print().c_str());
 	}	
-	GraphBuilder *gb = new ReducedGraphBuilder(mmo_class);
+	ReducedGraphBuilder *gb = new ReducedGraphBuilder(mmo_class);
 	CausalizationGraph g = gb->makeGraph();
-	CausalizationStrategy *cs = new CausalizationStrategy(g, mmo_class->name(), gb->getUnknownList());
+	CausalizationStrategy *cs = new CausalizationStrategy(g);
 	cs->causalize();
-	//GraphPrinter gp;
+	//GraphPrinter gp(g);
 	//gp.printGraph();
 	return 0;
 }

@@ -3,11 +3,8 @@
 #include <boost/lambda/lambda.hpp>
 using namespace boost;
 
-CausalizationStrategy::CausalizationStrategy(CausalizationGraph g, AST_String name, AST_ExpressionList unknowns){
+CausalizationStrategy::CausalizationStrategy(CausalizationGraph g){
 	graph = g;
-	cl = newAST_ClassList();
-	_unknowns = unknowns;
-	_name = name;
 	equations1toN = (MMO_EquationList) newMMO_EquationList;
 	equationsNto1 = (MMO_EquationList) newMMO_EquationList;
 	equationDescriptors = new list<Vertex>();

@@ -3,7 +3,7 @@
 
 class CausalizationStrategy{
 	public:
-		CausalizationStrategy(CausalizationGraph g, AST_String name, AST_ExpressionList unknowns);			
+		CausalizationStrategy(CausalizationGraph g);			
 		void causalize();
 		MMO_EquationList getEquations();
 	private:
@@ -15,7 +15,4 @@ class CausalizationStrategy{
 		AST_Integer equationNumber;
 		AST_Integer unknownNumber;
 		list<Vertex> *equationDescriptors, *unknownDescriptors;
-		AST_ClassList cl;
-		AST_String _name;
-		AST_ExpressionList _unknowns;
 };
