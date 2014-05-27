@@ -39,34 +39,32 @@ CausalizationStrategy::remove_edge_from_array(Edge targetEdge, map<Edge, Vertex>
 }
 void
 CausalizationStrategy::remove_edge_from_array(Vertex targetVertex, Edge targetEdge){
-	
-	
-}
 
+}
 void
 CausalizationStrategy::causalize(){	
-	list<Vertex>::iterator iter;
+/*	list<Vertex>::iterator iter;
 	foreach(iter, equationDescriptors){
 		Vertex eq = current_element(iter);
 		EquationType eqType = graph[current_element(iter)].eqType;
 		if(eqType == EQEQUALITY){
-			/*here we use the classic version of the algorithm*/
+			//here we use the classic version of the algorithm
 			if(out_degree(eq, graph) == 1){
 				Edge e = *out_edges(eq, graph).first;			
 				Vertex unknown = target(e,graph);
 				if (graph[e].indexes.empty()){
-					/*its a regular variable*/		
+					//its a regular variable
 					remove_out_edge_if(unknown, boost::lambda::_1 != e, graph);
-					/*TODO MAKECAUSAL*/
+					//TODO MAKECAUSAL
 					equationNumber--;
 					unknownNumber--;
 					equationDescriptors->erase(iter);
 					unknownDescriptors->remove(unknown);
 				}else{
-					/*its an array*/		
+					//its an array
 					assert(graph[e].indexes.size() == 1);
-					/*TODO MAKECAUSAL*/
-					/*TODO remove_index_from_array*/
+					//TODO MAKECAUSAL
+					//TODO remove_index_from_array
 					remove_edge_from_array(unknown, e);
 					equationNumber--;
 					if(--unknownNumber == 0){
@@ -85,8 +83,8 @@ CausalizationStrategy::causalize(){
 					//its a regular variable and we just solve 
 					//arrays in the FOR
 				}else{
-					/*only one variable in the FOR, we causalize it*/
-					/*TODO MAKECAUSAL*/
+					//only one variable in the FOR, we causalize it
+					//TODO MAKECAUSAL
 					remove_edge_from_array(unknown, e);
 					equationNumber -= graph[eq].count;
 					unknownNumber -= graph[eq].count; //the array may have more variables 
@@ -96,8 +94,8 @@ CausalizationStrategy::causalize(){
 					equationDescriptors->erase(iter);
 				}
 			}else{
-				/*if only one of the edges has weight == size of range
-				 * then thats the one we are causalizing */
+				//if only one of the edges has weight == size of range
+				// then thats the one we are causalizing 
 				CausalizationGraph::out_edge_iterator begin, end, it;
 				Edge targetEdge; 
 				//Vertex causalizedUnknown;
@@ -113,7 +111,7 @@ CausalizationStrategy::causalize(){
 					}
 				}
 				if(sameWeight == 1){
-					/*TODO Makecausal*/
+					//TODO Makecausal
 					remove_edge_from_array(targetEdge,toRemove);
 				}
 			}
@@ -121,5 +119,5 @@ CausalizationStrategy::causalize(){
 			ERROR("CausalizationStrategy::causalize:"
 			      "Equation type not supported\n");		
 		}
-	}
+	}*/
 }

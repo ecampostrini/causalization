@@ -5,17 +5,14 @@
 #include <assert.h>
 using namespace std;
 
-
 Occurrence_checker::Occurrence_checker(VarSymbolTable sTable){
-	equalExp = new EqualExp(sTable);
 	evaluator = new EvalExp(sTable);
-	occurrenceSetList = new list<EdgeProperties*>;
 	symbolTable = sTable;
 }
 
-list<EdgeProperties*>*
+list<EdgeProperties>
 Occurrence_checker::getOccurrenceIndexes(){
-	return occurrenceSetList;		
+	return occurrenceSetList;
 }
 
 bool
@@ -23,20 +20,21 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 	variable = var;
 	equation = eq;
 	bool result;
-	occurrenceSetList->clear();
+	occurrenceSetList.clear();
+	genericIndexSet.clear();
+	simpleIndex.clear();
 	switch(eq->equationType()){
 		case EQEQUALITY:{
 			AST_Equation_Equality eqEquality = eq->getAsEquality();
 			bool left = foldTraverse(eqEquality->left());
 			bool right = foldTraverse(eqEquality->right());
-			//return left || right;
 			result = left || right;
 			break;
 		}
 		case EQFOR:{
 			AST_Equation_For eqFor = eq->getAsFor();
-			/*for the moment we just handle FORS with 1 equation
-			 * and we suppose there are no nested loops */
+			//for the time being we just handle FORS with 1 equation
+			//and we suppose there are no nested loops
 			assert(eqFor->equationList()->size() == 1);
 			AST_Equation insideEq = eqFor->equationList()->front();
 			switch(insideEq->equationType()){
@@ -44,7 +42,6 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 					AST_Equation_Equality eqEquality = insideEq->getAsEquality();
 					bool left = foldTraverse(eqEquality->left());
 					bool right = foldTraverse(eqEquality->right());
-					//return left || right;
 					result = left || right;
 					break;
 				}
@@ -59,29 +56,29 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 		default:
 			ERROR("Occurrence_checker::checl_occurrence: Equation type not suppoorted\n");
 	}
-	//return false;
-	if(!genericIndexSet.empty()){
-		for(set< pair<AST_Integer, AST_Integer> >::iterator it = genericIndexSet.begin(); it != genericIndexSet.end(); it++){
-			EdgeProperties *newEdge = new EdgeProperties;			
-			newEdge->genericIndex = *it;
-			newEdge->indexRange = indexes;
-			newEdge->simpleIndex = -1;
-			occurrenceSetList->push_back(newEdge);
+	if(result && variable.count == 0){
+		//its just a simple var (no array)
+		EdgeProperties newEdge;
+		occurrenceSetList.push_back(newEdge);
+	}else{
+		//its an array
+		if(!genericIndexSet.empty()){
+			//occurrence inside a FOR
+			for(set< pair<AST_Integer, AST_Integer> >::iterator it = genericIndexSet.begin(); it != genericIndexSet.end(); it++){
+				EdgeProperties newEdge;
+				newEdge.genericIndex = *it;
+				newEdge.indexRange = indexes;
+				occurrenceSetList.push_back(newEdge);
+			}
 		}
-	}
-	if(!simpleIndex.empty()){
-		for(set<AST_Integer>::iterator it = simpleIndex.begin(); it != simpleIndex.end(); it++){
-			EdgeProperties *newEdge = new EdgeProperties;
-			newEdge->simpleIndex = -1;
-			occurrenceSetList->push_back(newEdge);
+		if(!simpleIndex.empty()){
+			//occurrence of a particular position of the array
+			for(set<AST_Integer>::iterator it = simpleIndex.begin(); it != simpleIndex.end(); it++){
+				EdgeProperties newEdge;
+				newEdge.simpleIndex = *it;
+				occurrenceSetList.push_back(newEdge);
+			}
 		}
-	}
-	if(simpleIndex.empty() && genericIndexSet.empty() && result){
-		//its just a simple var
-		EdgeProperties *newEdge = new EdgeProperties;		
-		occurrenceSetList->push_back(newEdge);
-		newEdge->simpleIndex = -2;
-
 	}
 	return result;
 }
@@ -90,21 +87,16 @@ pair<AST_Integer, AST_Integer>
 Occurrence_checker::get_for_range(AST_Expression inExp, VarSymbolTable symbolTable){
 	pair <AST_Integer, AST_Integer> range;
 	switch(inExp->expressionType()){
-		case EXPRANGE:
-			RangeIterator *iterator;
-			iterator = new RangeIterator(inExp->getAsRange(), symbolTable);
-			range.first = (AST_Integer) iterator->begin();
-			range.second = (AST_Integer) iterator->end();
-			delete iterator;
+		case EXPRANGE:{
+			RangeIterator iterator(inExp->getAsRange(), symbolTable);
+			range.first = (AST_Integer) iterator.begin();
+			range.second = (AST_Integer) iterator.end();
 			return range;
 			break;
+		}
 		case EXPBRACE:
 			ERROR("Occurrence_checker::proecessInExp:\n"
 			      "Braces in FOR expressions are not supported yet\n");
-			//iterator = new BraceIterator(inExp->getAsBrace());
-			/*return iterator;
-			break;*/
-		
 		default:
 				ERROR("process_for_equations:\n"
 					"Equation type not supported in forIndex inExp\n");
@@ -129,20 +121,23 @@ Occurrence_checker::add_generic_index(AST_Expression index){
 			if(binop->left()->expressionType() == EXPBINOP && binop->left()->getAsBinOp()->binopType() == BINOPMULT){
 				AST_Expression_BinOp binopMult = binop->left()->getAsBinOp();
 				a = binopMult->left()->getAsInteger()->val();
-			}else{
-								
-				ERROR("Occurrence_checker::add_generic_index: index of arrays"
-		      		  "must have the form: a*i + b for the moment\n");
+			}else if(binop->left()->expressionType() == EXPINTEGER || binop->left()->expressionType() == EXPREAL){
+				AST_Expression_Integer _a = binop->left()->getAsInteger();
+				a = _a->val();
+				DEBUG('g', "a: %d\n", a);
+			}
+			else{
+				ERROR("Occurrence_checker::add_generic_index, error in expression %s. Index of arrays"
+		      		  "must have the form: a*i + b for the moment.\n", index->print().c_str());
 			}
 		}else if(binop->binopType() == BINOPMULT){
 			b = 0;		
 			a = binop->left()->getAsInteger()->val();
 		}
 		genericIndexSet.insert(pair<AST_Integer, AST_Integer> (a,b));
-
 	}else{
 		ERROR("Occurrence_checker::add_generic_index: index of arrays"
-		      "must have the form: a*i + b for the moment\n");
+		      "must have the form: a*i + b for the momento\n");
 	}
 }
 
@@ -169,13 +164,12 @@ Occurrence_checker::arrayOccurrence(AST_Expression_ComponentReference cref_exp){
 				"Occurrence_checker::arrayOccurrence:\n"
 				"forIndexList with more than 1 forIndex are not supported yet\n");
 			pair<AST_Integer,AST_Integer> ranges = get_for_range(eqFor->forIndexList()->front()->in_exp(), symbolTable);
-			indexes = boost::icl::construct< boost::icl::discrete_interval<int> > (ranges.first, ranges.second, boost::icl::interval_bounds::closed());	
+			indexes = boost::icl::construct< boost::icl::discrete_interval<int> > (ranges.first, ranges.second, boost::icl::interval_bounds::closed());
 			break;
 		}
 		default:		
 			ERROR("Occurrence_checker::foldTraverseElement: equation not supported, compiler's mistake\n");
-		}
-		//occurrenceSetList->push_back(newEdge);
+	}
 }
 
 /* If we got to this point then the expression doesn't 
@@ -195,18 +189,13 @@ Occurrence_checker::foldTraverseElement(AST_Expression exp){
 						"For the momento just variables of the form 'a' or a[index]\n", 
 						exp_cref->print().c_str());
 			}
-			if(!exp_cref->indexes()->front()->empty()){
-				/*if its an array*/
+			if(variable.count != 0){
+				//if its an array
 				arrayOccurrence(exp_cref);
 			}else{
-				/*if its a simple var we don't care in what kind of equation it
-				 * appears */
-				/*EdgeProperties *newEdge = new EdgeProperties;
-				newEdge->genericIndex = NULL;
-				occurrenceSetList->push_back(newEdge);
-				*/
+				//if its a simple var we don't care in what kind of equation it
+				// appears
 			}
-
 			return true;
 			break;
 		}
@@ -215,7 +204,6 @@ Occurrence_checker::foldTraverseElement(AST_Expression exp){
 		case EXPCALL:
 			break;
 		default:
-			/*nothing for the moment -> possibly: return false*/
 			//cout << exp->print() << ", " << exp->expressionType() << endl;
 			assert(exp->expressionType() == EXPREAL || exp->expressionType() == EXPINTEGER);
 			return false;

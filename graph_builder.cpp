@@ -1,6 +1,8 @@
 #include <causalize/causalize2/graph_builder.h>
 #include <causalize/causalize2/occurrence_checker.h>
 #include <causalize/causalize2/graph_printer.h>
+#include <causalize/causalize2/graph_definition.h>
+
 
 #include <boost/graph/adjacency_list.hpp>
 #include <util/ast_util.h>
@@ -96,7 +98,7 @@ ReducedGraphBuilder::getForRangeSize(MMO_Equation eq){
 }
 
 
-CausalizationGraph
+CausalizationGraph 
 ReducedGraphBuilder::makeGraph(){
 	equationDescriptorList = new list<Vertex>();
 	unknownDescriptorList = new list<Vertex>();
@@ -139,7 +141,7 @@ ReducedGraphBuilder::makeGraph(){
 				}else{
 					vp->isState = false;
 				}
-				vp->count = 1;
+				vp->count = 0;
 				
 			}
 			else if(varType->getType() == TYARRAY){
@@ -186,26 +188,25 @@ ReducedGraphBuilder::makeGraph(){
 	foreach(eqsIt, equationDescriptorList){
 		foreach(unIt,unknownDescriptorList){
 			if(oc->check_occurrence(graph[current_element(unIt)], graph[current_element(eqsIt)].equation)){
-				list<EdgeProperties*>* edgeList = oc->getOccurrenceIndexes();
-				list<EdgeProperties*>::iterator edgeIt = edgeList->begin();
-				foreach(edgeIt,edgeList){
+				list<EdgeProperties> edgeList = oc->getOccurrenceIndexes();
+				for(list<EdgeProperties>::iterator edgeIt = edgeList.begin(); edgeIt != edgeList.end(); edgeIt++){
 					Edge descriptor;
 					bool result;
-					tie(descriptor, result) = add_edge(current_element(eqsIt),current_element(unIt),*current_element(edgeIt), graph);
+					tie(descriptor, result) = add_edge(current_element(eqsIt),current_element(unIt),current_element(edgeIt), graph);
 					if(!result){
 						ERROR("makeGraph: Error while adding the edges to the graph\n");
 					}
 				}
+				DEBUG('g', "(%d, %d, %d), ", graph[current_element(eqsIt)].index ,graph[current_element(unIt)].index,edgeList.size());
 				#ifdef ENABLE_DEBUG_MSG
-				DEBUG('g', "(%d, %d, %d), ", graph[current_element(eqsIt)].index ,graph[current_element(unIt)].index,edgeList->size());
 				graph_traits<CausalizationGraph>::out_edge_iterator begin, end;			
 				stringstream stri;
 				tie(begin, end) = out_edges(current_element(eqsIt), graph);
 				stri << "{";
 				while(begin!=end){
-					if( graph[current_element(begin)].genericIndex != NULL){
+					if( graph[current_element(begin)].genericIndex.first ){
 						if(!stri.str().empty()) stri << ", ";
-						stri << graph[current_element(begin)].genericIndex->print();
+						stri << graph[current_element(begin)].genericIndex.first << " * i + " << graph[current_element(begin)].genericIndex.second;
 					}
 					begin++;
 				}

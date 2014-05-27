@@ -12,8 +12,9 @@
 class Occurrence_checker : public AST_Expression_Fold<bool>{
 	public:
 		Occurrence_checker(VarSymbolTable sTable);
+		~Occurrence_checker();
 		bool check_occurrence(VertexProperties variable, AST_Equation equation);
-		list<EdgeProperties*>* getOccurrenceIndexes();
+		list<EdgeProperties> getOccurrenceIndexes();
 	private:
 		/*methods*/
 		virtual bool foldTraverseElement(AST_Expression);
@@ -23,14 +24,14 @@ class Occurrence_checker : public AST_Expression_Fold<bool>{
 		pair<AST_Integer, AST_Integer> get_for_range(AST_Expression, VarSymbolTable);
 		void add_generic_index(AST_Expression);
 		/*fields*/
-		EqualExp *equalExp;
-		EvalExp *evaluator;
+		//EqualExp *equalExp;
 		VertexProperties variable;
 		AST_Equation equation;
-		list<EdgeProperties*>* occurrenceSetList;
+		list<EdgeProperties> occurrenceSetList;
 		VarSymbolTable symbolTable;
+		EvalExp *evaluator;
 
 		set< pair<AST_Integer, AST_Integer> > genericIndexSet;
 		boost::icl::discrete_interval<AST_Integer> indexes;
-		set<AST_Integer> simpleIndex;
+		set<int> simpleIndex;
 };

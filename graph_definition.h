@@ -32,10 +32,9 @@ struct VertexProperties{
 * an array) that are used in the equation connected by the edge.
 */
 
+
 struct EdgeProperties{
-	//AST_Expression genericIndex; 
 	pair<AST_Integer, AST_Integer> genericIndex;
-	//AST_IntegerSet indexes;
 	boost::icl::discrete_interval<int> indexRange;
 	AST_Integer simpleIndex;
 };
