@@ -199,10 +199,32 @@ Occurrence_checker::foldTraverseElement(AST_Expression exp){
 			return true;
 			break;
 		}
-		case EXPDERIVATIVE:
+		case EXPDERIVATIVE:{
+			if(variable.isState){
+				bool result = false;
+				AST_Expression_Derivative exp_der = exp->getAsDerivative();
+				ERROR_UNLESS(exp_der->arguments()->size() > 1, "Derivatives can have only one argument\n");
+				ERROR_UNLESS(exp_der->arguments()->front()->expressionType() != EXPCOMPREF, "Only simple variable derivatives are allowed for the moment\n");
+				result = foldTraverseElement(exp_der->arguments()->front());
+				return result;
+			}
 			break;
-		case EXPCALL:
+		}
+		case EXPCALL:{
+			//we check the arguments
+			bool result = false;
+			AST_Expression_Call exp_call = exp->getAsCall();
+			AST_ExpressionListIterator it;
+			foreach(it, exp_call->arguments()){
+				result = foldTraverse(current_element(it));
+				if(result){
+					//DEBUG('g', "Expression %s found in function call %s\n", current_element(it)->print().c_str(), exp_call->name()->c_str());
+					break;
+				}
+			}
+			return result;
 			break;
+		}	
 		default:
 			//cout << exp->print() << ", " << exp->expressionType() << endl;
 			assert(exp->expressionType() == EXPREAL || exp->expressionType() == EXPINTEGER);
