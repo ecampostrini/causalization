@@ -21,7 +21,7 @@ bool
 Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 	variable = var;
 	equation = eq;
-	bool result;
+	bool result = false;
 	switch(eq->equationType()){
 		case EQEQUALITY:{
 			edgeList.clear();
@@ -31,6 +31,34 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 			bool left = foldTraverse(eqEquality->left());
 			bool right = foldTraverse(eqEquality->right());
 			result = left || right;
+			if(result && variable.count == 0){
+				//its just a simple var (no array)
+				EdgeProperties newEdge;
+				newEdge.genericIndex.first = newEdge.genericIndex.second = 0;
+				newEdge.indexRange = construct< discrete_interval<int> > (0, 0, interval_bounds::open());
+				edgeList.push_back(newEdge);
+			}else{
+				//its an array
+				if(!genericIndexSet.empty()){
+					//occurrence inside a FOR
+					for(set< pair<AST_Integer, AST_Integer> >::iterator it = genericIndexSet.begin(); it != genericIndexSet.end(); it++){
+						EdgeProperties newEdge;
+						newEdge.genericIndex = *it;
+						newEdge.indexRange = forIndexInterval;
+						edgeList.push_back(newEdge);
+					}
+				}
+				if(!simpleIndex.empty()){
+					//occurrence of a particular position of the array
+					for(set<AST_Integer>::iterator it = simpleIndex.begin(); it != simpleIndex.end(); it++){
+						EdgeProperties newEdge;
+						newEdge.genericIndex.first = newEdge.genericIndex.second = 0;
+						newEdge.indexRange = construct< discrete_interval<int> > (*it, *it, interval_bounds::closed());
+						edgeList.push_back(newEdge);
+					}
+				}
+			}
+			return result;
 			break;
 		}
 		case EQFOR:{
@@ -56,31 +84,6 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 		}
 		default:
 			ERROR("Occurrence_checker::checl_occurrence: Equation type not suppoorted\n");
-	}
-	if(result && variable.count == 0){
-		//its just a simple var (no array)
-		EdgeProperties newEdge;
-		edgeList.push_back(newEdge);
-	}else{
-		//its an array
-		if(!genericIndexSet.empty()){
-			//occurrence inside a FOR
-			for(set< pair<AST_Integer, AST_Integer> >::iterator it = genericIndexSet.begin(); it != genericIndexSet.end(); it++){
-				EdgeProperties newEdge;
-				newEdge.genericIndex = *it;
-				newEdge.indexRange = forIndexInterval;
-				edgeList.push_back(newEdge);
-			}
-		}
-		if(!simpleIndex.empty()){
-			//occurrence of a particular position of the array
-			for(set<AST_Integer>::iterator it = simpleIndex.begin(); it != simpleIndex.end(); it++){
-				EdgeProperties newEdge;
-				//newEdge.simpleIndex = *it;
-				newEdge.indexRange = construct< discrete_interval<int> > (*it, *it, interval_bounds::closed());
-				edgeList.push_back(newEdge);
-			}
-		}
 	}
 	return result;
 }
