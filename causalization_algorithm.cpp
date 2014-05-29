@@ -1,12 +1,16 @@
 #include <causalize/causalize2/causalization_algorithm.h>
+#include <causalize/causalize2/graph_definition.h>
+
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/lambda/lambda.hpp>
+#include <boost/icl/discrete_interval.hpp>
+
 using namespace boost;
 
 CausalizationStrategy::CausalizationStrategy(CausalizationGraph g){
 	graph = g;
-	equations1toN = (MMO_EquationList) newMMO_EquationList;
-	equationsNto1 = (MMO_EquationList) newMMO_EquationList;
+	//equations1toN = (MMO_EquationList) newMMO_EquationList;
+	//equationsNto1 = (MMO_EquationList) newMMO_EquationList;
 	equationDescriptors = new list<Vertex>();
 	unknownDescriptors = new list<Vertex>();	
 	CausalizationGraph::vertex_iterator vi, vi_end;
@@ -40,7 +44,23 @@ CausalizationStrategy::remove_edge_from_array(Edge targetEdge, map<Edge, Vertex>
 void
 CausalizationStrategy::remove_edge_from_array(Vertex targetVertex, Edge targetEdge){
 
+	if(boost::icl::size(graph[targetEdge].indexRange) != 0){
+			
+	}else{
+				
+	}
 }
+/*
+void causalize1toN(Vertex unknown, Vertex equation, int arrayPos){
+	CausalizedVar c_var;
+	c_var.variableName = unknown.variableName;
+	c_var.isState = unknown.isState;
+	c_var.index = arrayPos;
+	c_var.equation = equation.equation;
+	c_var.indexRange = boost::icl::construct< boost::icl::discrete_interval<int> > (0, 0, boost::icl::interval_bounds::closed());
+	equations1toN.push_back(c_var);
+}*/
+
 void
 CausalizationStrategy::causalize(){	
 /*	list<Vertex>::iterator iter;
@@ -52,18 +72,18 @@ CausalizationStrategy::causalize(){
 			if(out_degree(eq, graph) == 1){
 				Edge e = *out_edges(eq, graph).first;			
 				Vertex unknown = target(e,graph);
-				if (graph[e].indexes.empty()){
+				if (unknown.count == 0){
 					//its a regular variable
 					remove_out_edge_if(unknown, boost::lambda::_1 != e, graph);
-					//TODO MAKECAUSAL
+					causalize1toN(unknown, eq, 0);
 					equationNumber--;
 					unknownNumber--;
 					equationDescriptors->erase(iter);
 					unknownDescriptors->remove(unknown);
 				}else{
 					//its an array
-					assert(graph[e].indexes.size() == 1);
-					//TODO MAKECAUSAL
+					assert(graph[e].simpleIndex != 0);
+					causalize1toN(unknown, eq, graph[e].simpleIndex);
 					//TODO remove_index_from_array
 					remove_edge_from_array(unknown, e);
 					equationNumber--;

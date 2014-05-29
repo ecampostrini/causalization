@@ -23,26 +23,30 @@ struct VertexProperties{
 	AST_Integer index; //for debug purposes
 };
 
-
-
 /*
 * genericIndex: if the edge represents an occurrence of the form 
 * a[i-1] in some equation, then this list contains the expression: i-1.
 * indexes: it contains the number of indexes of a variable (in case it is
 * an array) that are used in the equation connected by the edge.
 */
-
-
 struct EdgeProperties{
 	pair<AST_Integer, AST_Integer> genericIndex;
 	boost::icl::discrete_interval<int> indexRange;
-	AST_Integer simpleIndex;
+	//AST_Integer simpleIndex;
 };
 
 typedef boost::adjacency_list<boost::listS, boost::listS,
 		boost::undirectedS, VertexProperties, EdgeProperties> CausalizationGraph;
 typedef CausalizationGraph::vertex_descriptor Vertex;
 typedef CausalizationGraph::edge_descriptor Edge;
+
+struct CausalizedVar{
+	string variableName;
+	AST_Boolean isState;
+	AST_Integer index; //0: normal variable, != 0: array
+	boost::icl::discrete_interval<int> indexRange;
+	MMO_Equation equation;
+};
 
 /*Classes for a potential redefinition of the Bundled properties*/
 

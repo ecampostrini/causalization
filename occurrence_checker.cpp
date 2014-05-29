@@ -22,9 +22,6 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 	variable = var;
 	equation = eq;
 	bool result;
-	//edgeList.clear();
-	//genericIndexSet.clear();
-	//simpleIndex.clear();
 	switch(eq->equationType()){
 		case EQEQUALITY:{
 			edgeList.clear();
@@ -39,9 +36,6 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 		case EQFOR:{
 			//for the time being we just handle FORS with 1 equation
 			//and we suppose there are no nested loops
-			//edgeList.clear();
-			//genericIndexSet.clear();
-			//simpleIndex.clear();
 			AST_Equation_For eqFor = eq->getAsFor();
 			ERROR_UNLESS(eqFor->forIndexList()->size() == 1,
 				"Occurrence_checker::check_occurrence: "
@@ -53,22 +47,11 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 			pair<AST_Integer,AST_Integer> ranges = get_for_range(eqFor->forIndexList()->front()->in_exp(), symbolTable);
 			forIndexInterval = construct< discrete_interval<int> > (ranges.first, ranges.second, interval_bounds::closed());
 			AST_Equation insideEq = eqFor->equationList()->front();
-			switch(insideEq->equationType()){
-				case EQEQUALITY:{		
-					//AST_Equation_Equality eqEquality = insideEq->getAsEquality();
-					//bool left = foldTraverse(eqEquality->left());
-					//bool right = foldTraverse(eqEquality->right());
-					//result = left || right;
-					//break;
-					result = check_occurrence(var, insideEq);
-					return result;
-					break;
-				}
-				case EQFOR:
-					ERROR("Occurrence_checker::check_occurrence: Nested fors not supported yet\n");
-				default:
-					ERROR("Occurrence_checker::check_occurrence: Equation inside of FOR not supported\n");
+			if(insideEq->equationType() != EQEQUALITY){
+				ERROR("Occurrence_checker::check_occurrence: Only single equations are allowed inside a FOR\n");
 			}
+			result = check_occurrence(var, insideEq);
+			return result;
 			break;
 		}
 		default:
@@ -93,7 +76,8 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 			//occurrence of a particular position of the array
 			for(set<AST_Integer>::iterator it = simpleIndex.begin(); it != simpleIndex.end(); it++){
 				EdgeProperties newEdge;
-				newEdge.simpleIndex = *it;
+				//newEdge.simpleIndex = *it;
+				newEdge.indexRange = construct< discrete_interval<int> > (*it, *it, interval_bounds::closed());
 				edgeList.push_back(newEdge);
 			}
 		}
