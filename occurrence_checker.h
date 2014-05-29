@@ -27,11 +27,11 @@ class Occurrence_checker : public AST_Expression_Fold<bool>{
 		//EqualExp *equalExp;
 		VertexProperties variable;
 		AST_Equation equation;
-		list<EdgeProperties> occurrenceSetList;
+		list<EdgeProperties> edgeList;
 		VarSymbolTable symbolTable;
 		EvalExp *evaluator;
 
 		set< pair<AST_Integer, AST_Integer> > genericIndexSet;
-		boost::icl::discrete_interval<AST_Integer> indexes;
+		boost::icl::discrete_interval<AST_Integer> forIndexInterval;
 		set<int> simpleIndex;
 };
