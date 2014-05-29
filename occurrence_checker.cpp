@@ -4,6 +4,8 @@
 #include <iostream>
 #include <assert.h>
 using namespace std;
+using namespace boost;
+using namespace boost::icl;
 
 Occurrence_checker::Occurrence_checker(VarSymbolTable sTable){
 	evaluator = new EvalExp(sTable);
@@ -12,7 +14,7 @@ Occurrence_checker::Occurrence_checker(VarSymbolTable sTable){
 
 list<EdgeProperties>
 Occurrence_checker::getOccurrenceIndexes(){
-	return occurrenceSetList;
+	return edgeList;
 }
 
 bool
@@ -20,11 +22,14 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 	variable = var;
 	equation = eq;
 	bool result;
-	occurrenceSetList.clear();
-	genericIndexSet.clear();
-	simpleIndex.clear();
+	//edgeList.clear();
+	//genericIndexSet.clear();
+	//simpleIndex.clear();
 	switch(eq->equationType()){
 		case EQEQUALITY:{
+			edgeList.clear();
+			genericIndexSet.clear();
+			simpleIndex.clear();
 			AST_Equation_Equality eqEquality = eq->getAsEquality();
 			bool left = foldTraverse(eqEquality->left());
 			bool right = foldTraverse(eqEquality->right());
@@ -32,24 +37,37 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 			break;
 		}
 		case EQFOR:{
-			AST_Equation_For eqFor = eq->getAsFor();
 			//for the time being we just handle FORS with 1 equation
 			//and we suppose there are no nested loops
-			assert(eqFor->equationList()->size() == 1);
+			//edgeList.clear();
+			//genericIndexSet.clear();
+			//simpleIndex.clear();
+			AST_Equation_For eqFor = eq->getAsFor();
+			ERROR_UNLESS(eqFor->forIndexList()->size() == 1,
+				"Occurrence_checker::check_occurrence: "
+				"forIndexList with more than 1 forIndex are not supported yet\n");
+			ERROR_UNLESS(eqFor->equationList()->size() == 1,
+				 "Occurrence_checker::check_occurrence: "
+				 "More than 1 equation inside a FOR is not supported yet\n");
+			//we calculate the ranges
+			pair<AST_Integer,AST_Integer> ranges = get_for_range(eqFor->forIndexList()->front()->in_exp(), symbolTable);
+			forIndexInterval = construct< discrete_interval<int> > (ranges.first, ranges.second, interval_bounds::closed());
 			AST_Equation insideEq = eqFor->equationList()->front();
 			switch(insideEq->equationType()){
 				case EQEQUALITY:{		
-					AST_Equation_Equality eqEquality = insideEq->getAsEquality();
-					bool left = foldTraverse(eqEquality->left());
-					bool right = foldTraverse(eqEquality->right());
-					result = left || right;
+					//AST_Equation_Equality eqEquality = insideEq->getAsEquality();
+					//bool left = foldTraverse(eqEquality->left());
+					//bool right = foldTraverse(eqEquality->right());
+					//result = left || right;
+					//break;
+					result = check_occurrence(var, insideEq);
+					return result;
 					break;
 				}
 				case EQFOR:
 					ERROR("Occurrence_checker::check_occurrence: Nested fors not supported yet\n");
 				default:
-					ERROR("Occurrence_checker::check_occurrence: Equation inside of FOR\n"
-					      "not supported");
+					ERROR("Occurrence_checker::check_occurrence: Equation inside of FOR not supported\n");
 			}
 			break;
 		}
@@ -59,7 +77,7 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 	if(result && variable.count == 0){
 		//its just a simple var (no array)
 		EdgeProperties newEdge;
-		occurrenceSetList.push_back(newEdge);
+		edgeList.push_back(newEdge);
 	}else{
 		//its an array
 		if(!genericIndexSet.empty()){
@@ -67,8 +85,8 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 			for(set< pair<AST_Integer, AST_Integer> >::iterator it = genericIndexSet.begin(); it != genericIndexSet.end(); it++){
 				EdgeProperties newEdge;
 				newEdge.genericIndex = *it;
-				newEdge.indexRange = indexes;
-				occurrenceSetList.push_back(newEdge);
+				newEdge.indexRange = forIndexInterval;
+				edgeList.push_back(newEdge);
 			}
 		}
 		if(!simpleIndex.empty()){
@@ -76,7 +94,7 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 			for(set<AST_Integer>::iterator it = simpleIndex.begin(); it != simpleIndex.end(); it++){
 				EdgeProperties newEdge;
 				newEdge.simpleIndex = *it;
-				occurrenceSetList.push_back(newEdge);
+				edgeList.push_back(newEdge);
 			}
 		}
 	}
@@ -128,7 +146,7 @@ Occurrence_checker::add_generic_index(AST_Expression index){
 			}
 			else{
 				ERROR("Occurrence_checker::add_generic_index, error in expression %s. Index of arrays"
-		      		  "must have the form: a*i + b for the moment.\n", index->print().c_str());
+		      		  " must have the form: a*i + b for the moment.\n", index->print().c_str());
 			}
 		}else if(binop->binopType() == BINOPMULT){
 			b = 0;		
@@ -137,38 +155,21 @@ Occurrence_checker::add_generic_index(AST_Expression index){
 		genericIndexSet.insert(pair<AST_Integer, AST_Integer> (a,b));
 	}else{
 		ERROR("Occurrence_checker::add_generic_index: index of arrays"
-		      "must have the form: a*i + b for the momento\n");
+		      " must have the form: a*i + b for the momento\n");
 	}
 }
 
 void
 Occurrence_checker::arrayOccurrence(AST_Expression_ComponentReference cref_exp){
-	switch(equation->equationType()){
-		case EQEQUALITY:{
-			AST_Expression indexResult = evaluator->eval(cref_exp->indexes()->front()->front());
-			switch(indexResult->expressionType()){
-				case EXPINTEGER:
-				case EXPREAL:
-					simpleIndex.insert(indexResult->getAsInteger()->val());
-					break;
-				default:
-					ERROR("Occurrence_checker::arrayOccurrence: wrong value returned by "
-					      "the evaluator\n");		
-			}
-			break;
-		}
-		case EQFOR:{
-			add_generic_index(cref_exp->indexes()->front()->front());
-			AST_Equation_For eqFor = equation->getAsFor();
-			ERROR_UNLESS(eqFor->forIndexList()->size() == 1,
-				"Occurrence_checker::arrayOccurrence:\n"
-				"forIndexList with more than 1 forIndex are not supported yet\n");
-			pair<AST_Integer,AST_Integer> ranges = get_for_range(eqFor->forIndexList()->front()->in_exp(), symbolTable);
-			indexes = boost::icl::construct< boost::icl::discrete_interval<int> > (ranges.first, ranges.second, boost::icl::interval_bounds::closed());
-			break;
-		}
-		default:		
-			ERROR("Occurrence_checker::foldTraverseElement: equation not supported, compiler's mistake\n");
+	AST_Expression indexExp = cref_exp->indexes()->front()->front();
+	AST_Expression indexResult = evaluator->eval(indexExp);
+	if(indexResult->expressionType() == EXPINTEGER || indexResult->expressionType() == EXPREAL){
+		simpleIndex.insert(indexResult->getAsInteger()->val());
+	}else if(indexResult->expressionType() == indexExp->expressionType()){
+		add_generic_index(indexExp);		
+	}else{
+		ERROR("Occurrence_checker::arrayOccurrence: wrong value returned by "
+		      "the evaluator\n");		
 	}
 }
 
