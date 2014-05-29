@@ -51,19 +51,21 @@ CausalizationStrategy::remove_edge_from_array(Vertex targetVertex, Edge targetEd
 	}
 }
 /*
-void causalize1toN(Vertex unknown, Vertex equation, int arrayPos){
+void causalize1toN(Vertex unknown, Vertex equation, boost::icl::discrete_interval<int> indexInterval){
 	CausalizedVar c_var;
 	c_var.variableName = unknown.variableName;
 	c_var.isState = unknown.isState;
 	c_var.index = arrayPos;
 	c_var.equation = equation.equation;
-	c_var.indexRange = boost::icl::construct< boost::icl::discrete_interval<int> > (0, 0, boost::icl::interval_bounds::closed());
+	//c_var.indexRange = boost::icl::construct< boost::icl::discrete_interval<int> > (0, 0, boost::icl::interval_bounds::open());
+	c_var.indexRange = indexInterval;
 	equations1toN.push_back(c_var);
-}*/
+}
+*/
 
 void
 CausalizationStrategy::causalize(){	
-/*	list<Vertex>::iterator iter;
+	list<Vertex>::iterator iter;
 	foreach(iter, equationDescriptors){
 		Vertex eq = current_element(iter);
 		EquationType eqType = graph[current_element(iter)].eqType;
@@ -74,17 +76,17 @@ CausalizationStrategy::causalize(){
 				Vertex unknown = target(e,graph);
 				if (unknown.count == 0){
 					//its a regular variable
+					assert(boost::icl::is_empty(graph[e].indexRange));
 					remove_out_edge_if(unknown, boost::lambda::_1 != e, graph);
-					causalize1toN(unknown, eq, 0);
+					causalize1toN(unknown, eq, graph[e].indexRange);
 					equationNumber--;
 					unknownNumber--;
 					equationDescriptors->erase(iter);
 					unknownDescriptors->remove(unknown);
 				}else{
 					//its an array
-					assert(graph[e].simpleIndex != 0);
-					causalize1toN(unknown, eq, graph[e].simpleIndex);
-					//TODO remove_index_from_array
+					assert(boost::icl::size(graph[e].indexRange) == 1);
+					causalize1toN(unknown, eq, graph[e].indexRange);
 					remove_edge_from_array(unknown, e);
 					equationNumber--;
 					if(--unknownNumber == 0){
@@ -95,7 +97,7 @@ CausalizationStrategy::causalize(){
 			}else if(out_degree(eq, graph) == 0){
 				ERROR("Problem is singular, not supported yet\n");
 			}
-		}else if(eqType == EQFOR){
+		}/*else if(eqType == EQFOR){
 			if(out_degree(eq,graph) == 1){
 				Edge e = *out_edges(eq, graph).first;
 				Vertex unknown = target(e, graph);
@@ -138,6 +140,6 @@ CausalizationStrategy::causalize(){
 		}else{
 			ERROR("CausalizationStrategy::causalize:"
 			      "Equation type not supported\n");		
-		}
-	}*/
+		}*/
+	}
 }
