@@ -156,18 +156,16 @@ ReducedGraphBuilder::makeGraph(){
 					vp->isState = false;		
 				}
 				vp->count = getDimension(array_type->dimension());
-				//DEBUG('g', "Array %s dimension: %d\n", vp->variableName.c_str(), vp->count);
 			}
 			else{ERROR("ReducedGraphBuilder::makeGraph A variable shouldn't have the type %s at this point. Compiler's mistake.\n", varType->print().c_str());}
 			vp->index = index++;
 			Vertex unknownDescriptor = add_vertex(*vp, graph);
 			unknownDescriptorList->push_back(unknownDescriptor);
-			//DEBUG('g', "Variable %s added to the graph\n", vp->variableName.c_str());
 		}
 	}
 
 
-	/* Create the edges */
+	//Create the edges 
 	list<Vertex>::iterator eqsIt, unIt;
 	
 	#ifdef ENABLE_DEBUG_MSG
