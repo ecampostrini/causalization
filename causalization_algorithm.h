@@ -8,7 +8,6 @@ class CausalizationStrategy{
 		MMO_EquationList getEquations();
 	private:
 		void remove_edge_from_array(Vertex, Edge);
-		void remove_edge_from_array(Edge, map<Edge, Vertex>);
 		CausalizationGraph graph;
 		AST_Integer equationNumber;
 		AST_Integer unknownNumber;

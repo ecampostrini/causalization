@@ -74,6 +74,9 @@ void causalize1toN(Vertex unknown, Vertex equation, boost::icl::discrete_interva
 
 void
 CausalizationStrategy::causalize(){	
+	assert(equationNumber == unknownNumber);
+	if(equationDescriptors->empty()) return;
+
 	list<Vertex>::iterator iter;
 	foreach(iter, equationDescriptors){
 		Vertex eq = current_element(iter);
@@ -86,8 +89,9 @@ CausalizationStrategy::causalize(){
 				if (graph[unknown].count == 0){
 					//its a regular variable
 					assert(boost::icl::is_empty(graph[e].indexInterval));
-					remove_out_edge_if(unknown, boost::lambda::_1 != e, graph);
 					//causalize1toN(unknown, eq, graph[e].indexInterval);
+					remove_out_edge_if(unknown, boost::lambda::_1 != e, graph);
+					remove_edge(e, graph);
 					equationNumber--;
 					unknownNumber--;
 					equationDescriptors->erase(iter);
@@ -96,7 +100,7 @@ CausalizationStrategy::causalize(){
 					//its an array
 					assert(boost::icl::size(graph[e].indexInterval) == 1);
 					//causalize1toN(unknown, eq, graph[e].indexInterval);
-					//remove_edge_from_array(unknown, e);
+					remove_edge_from_array(unknown, e);
 					equationNumber--;
 					equationDescriptors->erase(iter);
 					if(graph[unknown].count == 0){
@@ -151,5 +155,31 @@ CausalizationStrategy::causalize(){
 			ERROR("CausalizationStrategy::causalize:"
 			      "Equation type not supported\n");		
 		}*/
+	}
+	
+	//now we process the unknowns' side
+	
+	foreach(iter, unknownDescriptors){
+		Vertex unknown = current_element(iter);
+		if(out_degree(unknown, graph) == 1){
+			Edge e = *out_edges(unknown, graph).first;			
+			Vertex eq = target(e,graph);
+			if (graph[unknown].count == 0){
+				//regular variable => we use std algorithm
+				assert(graph[eq].equation->equationType() == EQEQUALITY);
+				assert(boost::icl::is_empty(graph[e].indexInterval));
+				//causalizeNto1(unknown, eq, graph[e].indexInterval);
+				remove_out_edge_if(eq, boost::lambda::_1 != e, graph);
+				remove_edge(e, graph);
+				equationNumber--;
+				unknownNumber--;
+				equationDescriptors->erase(iter);
+				unknownDescriptors->remove(unknown);
+			}else{
+				//its an array		
+			}
+		}else if(out_degree(unknown, graph) == 0){
+			ERROR("Problem is singuular, not supported yet.\n");	
+		}		
 	}
 }
