@@ -37,8 +37,9 @@ CausalizationStrategy::CausalizationStrategy(CausalizationGraph g){
 	}
 }
 
-void
+int
 CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge currentEdge){
+	int num_removed = 0;
 	assert(boost::icl::size(graph[currentEdge].indexInterval) != 0);
 	interval_set<int> toRemove;
 	CausalizationGraph::out_edge_iterator it, end;
@@ -55,8 +56,10 @@ CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge currentEdge){
 		}
 		it++;
 	}
-	graph[unknown].count -= graph[currentEdge].indexInterval.size();
+	num_removed = graph[currentEdge].indexInterval.size();
+	graph[unknown].count -= num_removed;
 	remove_edge(currentEdge, graph);
+	return num_removed;	
 }
 
 /*
@@ -99,13 +102,14 @@ CausalizationStrategy::causalize(){
 				}else{
 					//its an array
 					assert(boost::icl::size(graph[e].indexInterval) == 1);
+					int num_removed;
 					//causalize1toN(unknown, eq, graph[e].indexInterval);
-					remove_edge_from_array(unknown, e);
+					num_removed = remove_edge_from_array(unknown, e);
 					equationNumber--;
 					equationDescriptors->erase(iter);
 					if(graph[unknown].count == 0){
 						unknownDescriptors->remove(unknown);
-						unknownNumber--;
+						unknownNumber -= num_removed;
 					}
 				}
 			}else if(out_degree(eq, graph) == 0){
@@ -161,11 +165,13 @@ CausalizationStrategy::causalize(){
 	
 	foreach(iter, unknownDescriptors){
 		Vertex unknown = current_element(iter);
-		if(out_degree(unknown, graph) == 1){
-			Edge e = *out_edges(unknown, graph).first;			
-			Vertex eq = target(e,graph);
-			if (graph[unknown].count == 0){
-				//regular variable => we use std algorithm
+		ERROR_UNLESS(out_degree(unknown, graph) != 0, 
+			"Problem is singular, not supported yet\n");
+		if(graph[unknown].count == 0){		
+			//regular variable => we use std algorithm
+			if(out_degree(unknown, graph) == 1){
+				Edge e = *out_edges(unknown, graph).first;
+				Vertex eq = target(e, graph);
 				assert(graph[eq].equation->equationType() == EQEQUALITY);
 				assert(boost::icl::is_empty(graph[e].indexInterval));
 				//causalizeNto1(unknown, eq, graph[e].indexInterval);
@@ -175,11 +181,19 @@ CausalizationStrategy::causalize(){
 				unknownNumber--;
 				equationDescriptors->erase(iter);
 				unknownDescriptors->remove(unknown);
-			}else{
-				//its an array		
+
 			}
-		}else if(out_degree(unknown, graph) == 0){
-			ERROR("Problem is singuular, not supported yet.\n");	
-		}		
+		}else{
+			//its an array
+			if(out_degree(unknown, graph) == 1){
+				Edge e = *out_edges(unknown, graph).first;					
+				Vertex eq = target(e, graph);
+				//causalizeNto1(unknowns, eq, e);
+				remove_out_edge_if(eq, boost::lambda::_1 != e, graph);
+				remove_edge(e, graph);
+				equationNumber--;
+				//unknownNumber -=
+			}
+		}
 	}
 }
