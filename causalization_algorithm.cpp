@@ -45,31 +45,22 @@ CausalizationStrategy::remove_edge_from_array(Edge targetEdge, map<Edge, Vertex>
 void
 CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge currentEdge){
 	assert(boost::icl::size(graph[currentEdge].indexInterval) != 0);
+	interval_set<int> toRemove;
 	CausalizationGraph::out_edge_iterator begin, end;
 	tie(it, end) = out_edges(unknown, graph);
 	while(it != end){
 		if(current_element(it) == currentEdge) continue;
-		if(!intersects(graph[current_element(it)].indexInterval, graph[currentEdge].indexInterval)) break;
-		
-		//int oldSize = graph[current_element(it)].indexInterval.size();
-		graph[current_element(it)].indexInterval -= graph[currentEdge].indexInterval;
-		graph[unknown].count -= graph[currentEdge].indexInterval.size();
+		if(!intersects(graph[current_element(it)].indexInterval, graph[currentEdge].indexInterval)) continue;
 
-
-		Vertex eq = target(current_element(it), graph);
-		//if the equation connected to the edge pointed by 'it' is a FOR
 		if(graph[eq].equation->equationType == EQFOR){
-			//we remove this connection since we are not using it to solve the current indexes
-			graph[unknown].count -= graph[current_element(it)].indexInterval.size();
-			remove_edge(eq, unknown, graph);
-		}
-		else if(intersects(graph[current_element(it).indexInterval], graph[currentEdge].indexInterval)){
-			int oldSize = graph[current_element(it)].indexInterval.size();
+			remove_edge(current_element(it), graph);	
+		else{
 			graph[current_element(it)].indexInterval -= graph[currentEdge].indexInterval;
-			graph[unknown].count -= (oldSize - graph[current_element(it)].indexInterval.size());
 		}
 		it++;
 	}
+	graph[unknown].count -= graph[currentEdge].indexInterval.size();
+	remove_edge(currentEdge, graph);
 }
 
 /*
