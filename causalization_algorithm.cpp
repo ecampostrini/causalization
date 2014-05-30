@@ -9,8 +9,6 @@ using namespace boost;
 
 CausalizationStrategy::CausalizationStrategy(CausalizationGraph g){
 	graph = g;
-	//equations1toN = (MMO_EquationList) newMMO_EquationList;
-	//equationsNto1 = (MMO_EquationList) newMMO_EquationList;
 	equationDescriptors = new list<Vertex>();
 	unknownDescriptors = new list<Vertex>();	
 	CausalizationGraph::vertex_iterator vi, vi_end;
@@ -42,7 +40,7 @@ CausalizationStrategy::remove_edge_from_array(Edge targetEdge, map<Edge, Vertex>
 		
 }
 void
-CausalizationStrategy::remove_edge_from_array(Vertex targetVertex, Edge targetEdge){
+CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge targetEdge){
 
 	if(boost::icl::size(graph[targetEdge].indexRange) != 0){
 			
@@ -50,6 +48,7 @@ CausalizationStrategy::remove_edge_from_array(Vertex targetVertex, Edge targetEd
 				
 	}
 }
+
 /*
 void causalize1toN(Vertex unknown, Vertex equation, boost::icl::discrete_interval<int> indexInterval){
 	CausalizedVar c_var;
@@ -74,11 +73,11 @@ CausalizationStrategy::causalize(){
 			if(out_degree(eq, graph) == 1){
 				Edge e = *out_edges(eq, graph).first;			
 				Vertex unknown = target(e,graph);
-				if (unknown.count == 0){
+				if (graph[unknown].count == 0){
 					//its a regular variable
 					assert(boost::icl::is_empty(graph[e].indexRange));
 					remove_out_edge_if(unknown, boost::lambda::_1 != e, graph);
-					causalize1toN(unknown, eq, graph[e].indexRange);
+					//causalize1toN(unknown, eq, graph[e].indexRange);
 					equationNumber--;
 					unknownNumber--;
 					equationDescriptors->erase(iter);
@@ -86,7 +85,7 @@ CausalizationStrategy::causalize(){
 				}else{
 					//its an array
 					assert(boost::icl::size(graph[e].indexRange) == 1);
-					causalize1toN(unknown, eq, graph[e].indexRange);
+					//causalize1toN(unknown, eq, graph[e].indexRange);
 					remove_edge_from_array(unknown, e);
 					equationNumber--;
 					if(--unknownNumber == 0){

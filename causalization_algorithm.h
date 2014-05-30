@@ -10,9 +10,11 @@ class CausalizationStrategy{
 		void remove_edge_from_array(Vertex, Edge);
 		void remove_edge_from_array(Edge, map<Edge, Vertex>);
 		CausalizationGraph graph;
-		MMO_EquationList equations1toN;
-		MMO_EquationList equationsNto1;
 		AST_Integer equationNumber;
 		AST_Integer unknownNumber;
 		list<Vertex> *equationDescriptors, *unknownDescriptors;
+		vector<CausalizedVar> equations1toN;
+		vector<CausalizedVar> equationsNto1;
+		//causalize1toN(Vertex unknown, Vertex equation);
+		//causalizeNto1(Vertex unknown, Vertex equation);
 };
