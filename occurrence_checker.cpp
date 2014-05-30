@@ -46,6 +46,7 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 					for(set< pair<AST_Integer, AST_Integer> >::iterator it = genericIndexSet.begin(); it != genericIndexSet.end(); it++){
 						EdgeProperties newEdge;
 						newEdge.genericIndex = *it;
+						//forIndexInterval = discrete_interval<int>::closed(it->first * lower(forIndexInterval) + it->second, it->first * upper(forIndexInterval) + it->second);
 						newEdge.indexInterval.add(forIndexInterval);
 						//newEdge.indexInterval = forIndexInterval;
 						edgeList.push_back(newEdge);

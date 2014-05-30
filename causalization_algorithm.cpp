@@ -41,19 +41,31 @@ void
 CausalizationStrategy::remove_edge_from_array(Edge targetEdge, map<Edge, Vertex> toRemove){
 		
 }
+
 void
 CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge targetEdge){
-
 	/*
 	assert(boost::icl::size(graph[targetEdge].indexInterval) != 0);
+	int targetEdgeSize = graph[targetEdge].indexInterval.size();
 	CausalizationGraph::out_edge_iterator begin, end;
-	tie(begin, end) = out_edges(unknown, graph);
-	while(begin != end){
-		graph[current_element(begin)].indexInterval -= graph[targetEdge].indexInterval;
-		graph[unknown].count -= graph[targetEdge].indexInterval.size();
-		begin++;		
-	}*/
-	
+	tie(it, end) = out_edges(unknown, graph);
+	while(it != end){
+		Vertex eq = target(current_element(it), graph);
+		if(graph[eq].equation->equationType == EQFOR){
+			//we remove this connection
+
+			graph[unknown].count -= graph[current_element(it)].indexInterval.size();
+			remove_edge(eq, unknown, graph);
+		}
+		else if(intersects(graph[current_element(it).indexInterval], graph[targetEdge].indexInterval)){
+			int oldSize = graph[current_element(it)].indexInterval.size();
+			graph[current_element(it)].indexInterval -= graph[targetEdge].indexInterval;
+			graph[unknown].count -= (oldSize - graph[current_element(it)].indexInterval.size());
+			//if the equation connected to the edge pointed by 'it' is a FOR
+		}
+		it++;
+	}
+	*/
 }
 
 /*
