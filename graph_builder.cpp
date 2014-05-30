@@ -5,6 +5,7 @@
 
 
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/icl/interval_set.hpp>
 #include <util/ast_util.h>
 #include <mmo/mmo_class.h>
 
@@ -14,8 +15,9 @@
 #define DEBUG_MSG(str) do {} while( false )
 #endif
 
-using namespace boost;
 using namespace std;
+using namespace boost;
+using namespace boost::icl;
 
 ReducedGraphBuilder::ReducedGraphBuilder(MMO_Class mmo_cl):GraphBuilder(mmo_cl){
 	symbolTable = mmo_cl->getVarSymbolTable();
@@ -205,6 +207,10 @@ ReducedGraphBuilder::makeGraph(){
 					if( graph[current_element(begin)].genericIndex.first ){
 						if(!stri.str().empty()) stri << ", ";
 						stri << graph[current_element(begin)].genericIndex.first << " * i + " << graph[current_element(begin)].genericIndex.second;
+						interval_set<int>::iterator it1, it2;
+						it1 = graph[current_element(begin)].indexInterval.begin();
+						it2 = graph[current_element(begin)].indexInterval.end();
+						stri << ", " << first(*it1) << " : " << last(*--it2);
 					}
 					begin++;
 				}

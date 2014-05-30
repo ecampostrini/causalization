@@ -2,7 +2,8 @@
 #include <ast/ast_types.h>
 
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/icl/discrete_interval.hpp>
+#include <boost/icl/interval_set.hpp>
+//#include <boost/icl/discrete_interval.hpp>
 
 
 #ifndef GRAPH_DEFINITION_2
@@ -31,8 +32,7 @@ struct VertexProperties{
 */
 struct EdgeProperties{
 	pair<AST_Integer, AST_Integer> genericIndex;
-	boost::icl::discrete_interval<int> indexRange;
-	//AST_Integer simpleIndex;
+	boost::icl::interval_set<int> indexInterval;
 };
 
 typedef boost::adjacency_list<boost::listS, boost::listS,

@@ -5,7 +5,9 @@
 #include <boost/lambda/lambda.hpp>
 #include <boost/icl/discrete_interval.hpp>
 
+using namespace std;
 using namespace boost;
+using namespace boost::icl;
 
 CausalizationStrategy::CausalizationStrategy(CausalizationGraph g){
 	graph = g;
@@ -20,7 +22,7 @@ CausalizationStrategy::CausalizationStrategy(CausalizationGraph g){
 			equationDescriptors->push_back(current_element);
 		}
 		else{
-			unknownNumber += graph[current_element].count;
+			unknownNumber += ( graph[current_element].count == 0 ) ? 1 : graph[current_element].count;
 			unknownDescriptors->push_back(current_element);
 		}
 	}
@@ -42,11 +44,16 @@ CausalizationStrategy::remove_edge_from_array(Edge targetEdge, map<Edge, Vertex>
 void
 CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge targetEdge){
 
-	if(boost::icl::size(graph[targetEdge].indexRange) != 0){
-			
-	}else{
-				
-	}
+	/*
+	assert(boost::icl::size(graph[targetEdge].indexInterval) != 0);
+	CausalizationGraph::out_edge_iterator begin, end;
+	tie(begin, end) = out_edges(unknown, graph);
+	while(begin != end){
+		graph[current_element(begin)].indexInterval -= graph[targetEdge].indexInterval;
+		graph[unknown].count -= graph[targetEdge].indexInterval.size();
+		begin++;		
+	}*/
+	
 }
 
 /*
@@ -56,15 +63,15 @@ void causalize1toN(Vertex unknown, Vertex equation, boost::icl::discrete_interva
 	c_var.isState = unknown.isState;
 	c_var.index = arrayPos;
 	c_var.equation = equation.equation;
-	//c_var.indexRange = boost::icl::construct< boost::icl::discrete_interval<int> > (0, 0, boost::icl::interval_bounds::open());
-	c_var.indexRange = indexInterval;
+	//c_var.indexInterval = boost::icl::construct< boost::icl::discrete_interval<int> > (0, 0, boost::icl::interval_bounds::open());
+	c_var.indexInterval = indexInterval;
 	equations1toN.push_back(c_var);
 }
 */
 
 void
 CausalizationStrategy::causalize(){	
-	list<Vertex>::iterator iter;
+	/*list<Vertex>::iterator iter;
 	foreach(iter, equationDescriptors){
 		Vertex eq = current_element(iter);
 		EquationType eqType = graph[current_element(iter)].eqType;
@@ -75,28 +82,29 @@ CausalizationStrategy::causalize(){
 				Vertex unknown = target(e,graph);
 				if (graph[unknown].count == 0){
 					//its a regular variable
-					assert(boost::icl::is_empty(graph[e].indexRange));
+					assert(boost::icl::is_empty(graph[e].indexInterval));
 					remove_out_edge_if(unknown, boost::lambda::_1 != e, graph);
-					//causalize1toN(unknown, eq, graph[e].indexRange);
+					//causalize1toN(unknown, eq, graph[e].indexInterval);
 					equationNumber--;
 					unknownNumber--;
 					equationDescriptors->erase(iter);
 					unknownDescriptors->remove(unknown);
 				}else{
 					//its an array
-					assert(boost::icl::size(graph[e].indexRange) == 1);
-					//causalize1toN(unknown, eq, graph[e].indexRange);
+					assert(boost::icl::size(graph[e].indexInterval) == 1);
+					//causalize1toN(unknown, eq, graph[e].indexInterval);
 					remove_edge_from_array(unknown, e);
 					equationNumber--;
-					if(--unknownNumber == 0){
+					unknownNumber--;
+					if(--graph[unknown].count == 0){
 						unknownDescriptors->remove(unknown);
 					}
 					equationDescriptors->erase(iter);
 				}
 			}else if(out_degree(eq, graph) == 0){
 				ERROR("Problem is singular, not supported yet\n");
-			}
-		}/*else if(eqType == EQFOR){
+			}*/
+		/*}else if(eqType == EQFOR){
 			if(out_degree(eq,graph) == 1){
 				Edge e = *out_edges(eq, graph).first;
 				Vertex unknown = target(e, graph);
@@ -139,6 +147,6 @@ CausalizationStrategy::causalize(){
 		}else{
 			ERROR("CausalizationStrategy::causalize:"
 			      "Equation type not supported\n");		
-		}*/
-	}
+		}
+	}*/
 }

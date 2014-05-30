@@ -1,6 +1,7 @@
 #include <causalize/causalize2/occurrence_checker.h>
 
 #include <boost/icl/discrete_interval.hpp>
+#include <boost/icl/interval_set.hpp>
 #include <iostream>
 #include <assert.h>
 using namespace std;
@@ -35,7 +36,8 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 				//its just a simple var (no array)
 				EdgeProperties newEdge;
 				newEdge.genericIndex.first = newEdge.genericIndex.second = 0;
-				newEdge.indexRange = discrete_interval<int>::open(0, 0);
+				newEdge.indexInterval.add(discrete_interval<int>::open(0, 0));
+				//newEdge.indexInterval = construct< discrete_interval<int> > (0,0,interval_bounds::open());
 				edgeList.push_back(newEdge);
 			}else{
 				//its an array
@@ -44,7 +46,8 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 					for(set< pair<AST_Integer, AST_Integer> >::iterator it = genericIndexSet.begin(); it != genericIndexSet.end(); it++){
 						EdgeProperties newEdge;
 						newEdge.genericIndex = *it;
-						newEdge.indexRange = forIndexInterval;
+						newEdge.indexInterval.add(forIndexInterval);
+						//newEdge.indexInterval = forIndexInterval;
 						edgeList.push_back(newEdge);
 					}
 				}
@@ -53,7 +56,8 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 					for(set<AST_Integer>::iterator it = simpleIndex.begin(); it != simpleIndex.end(); it++){
 						EdgeProperties newEdge;
 						newEdge.genericIndex.first = newEdge.genericIndex.second = 0;
-						newEdge.indexRange = discrete_interval<int>::closed(*it, *it);
+						newEdge.indexInterval.add(discrete_interval<int>::closed(*it, *it));
+						//newEdge.indexInterval = construct < discrete_interval<int> > (*it, *it, interval_bounds::closed());
 						edgeList.push_back(newEdge);
 					}
 				}
@@ -77,6 +81,7 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 			//we calculate the ranges
 			pair<AST_Integer,AST_Integer> ranges = get_for_range(eqFor->forIndexList()->front()->in_exp(), symbolTable);
 			forIndexInterval = discrete_interval<int>::closed(ranges.first, ranges.second);
+			//forIndexInterval = construct < discrete_interval<int> > (ranges.first, ranges.second, interval_bounds::closed());
 			result = check_occurrence(var, insideEq);
 			return result;
 			break;
