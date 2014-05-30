@@ -35,7 +35,7 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 				//its just a simple var (no array)
 				EdgeProperties newEdge;
 				newEdge.genericIndex.first = newEdge.genericIndex.second = 0;
-				newEdge.indexRange = construct< discrete_interval<int> > (0, 0, interval_bounds::open());
+				newEdge.indexRange = discrete_interval<int>::open(0, 0);
 				edgeList.push_back(newEdge);
 			}else{
 				//its an array
@@ -53,7 +53,7 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 					for(set<AST_Integer>::iterator it = simpleIndex.begin(); it != simpleIndex.end(); it++){
 						EdgeProperties newEdge;
 						newEdge.genericIndex.first = newEdge.genericIndex.second = 0;
-						newEdge.indexRange = construct< discrete_interval<int> > (*it, *it, interval_bounds::closed());
+						newEdge.indexRange = discrete_interval<int>::closed(*it, *it);
 						edgeList.push_back(newEdge);
 					}
 				}
@@ -65,19 +65,18 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 			//for the time being we just handle FORS with 1 equation
 			//and we suppose there are no nested loops
 			AST_Equation_For eqFor = eq->getAsFor();
+			AST_Equation insideEq = eqFor->equationList()->front();
 			ERROR_UNLESS(eqFor->forIndexList()->size() == 1,
 				"Occurrence_checker::check_occurrence: "
 				"forIndexList with more than 1 forIndex are not supported yet\n");
 			ERROR_UNLESS(eqFor->equationList()->size() == 1,
 				 "Occurrence_checker::check_occurrence: "
 				 "More than 1 equation inside a FOR is not supported yet\n");
+			ERROR_UNLESS(insideEq->equationType() == EQEQUALITY, "Occurrence_checker::check_occurrence: "
+				 "Only single equations are allowed inside a FOR\n");
 			//we calculate the ranges
 			pair<AST_Integer,AST_Integer> ranges = get_for_range(eqFor->forIndexList()->front()->in_exp(), symbolTable);
-			forIndexInterval = construct< discrete_interval<int> > (ranges.first, ranges.second, interval_bounds::closed());
-			AST_Equation insideEq = eqFor->equationList()->front();
-			if(insideEq->equationType() != EQEQUALITY){
-				ERROR("Occurrence_checker::check_occurrence: Only single equations are allowed inside a FOR\n");
-			}
+			forIndexInterval = discrete_interval<int>::closed(ranges.first, ranges.second);
 			result = check_occurrence(var, insideEq);
 			return result;
 			break;
@@ -214,7 +213,6 @@ Occurrence_checker::foldTraverseElement(AST_Expression exp){
 			break;
 		}	
 		default:
-			//cout << exp->print() << ", " << exp->expressionType() << endl;
 			assert(exp->expressionType() == EXPREAL || exp->expressionType() == EXPINTEGER);
 			return false;
 	}
