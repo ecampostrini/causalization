@@ -43,29 +43,33 @@ CausalizationStrategy::remove_edge_from_array(Edge targetEdge, map<Edge, Vertex>
 }
 
 void
-CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge targetEdge){
-	/*
-	assert(boost::icl::size(graph[targetEdge].indexInterval) != 0);
-	int targetEdgeSize = graph[targetEdge].indexInterval.size();
+CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge currentEdge){
+	assert(boost::icl::size(graph[currentEdge].indexInterval) != 0);
 	CausalizationGraph::out_edge_iterator begin, end;
 	tie(it, end) = out_edges(unknown, graph);
 	while(it != end){
-		Vertex eq = target(current_element(it), graph);
-		if(graph[eq].equation->equationType == EQFOR){
-			//we remove this connection
+		if(current_element(it) == currentEdge) continue;
+		if(!intersects(graph[current_element(it)].indexInterval, graph[currentEdge].indexInterval)) break;
+		
+		//int oldSize = graph[current_element(it)].indexInterval.size();
+		graph[current_element(it)].indexInterval -= graph[currentEdge].indexInterval;
+		graph[unknown].count -= graph[currentEdge].indexInterval.size();
 
+
+		Vertex eq = target(current_element(it), graph);
+		//if the equation connected to the edge pointed by 'it' is a FOR
+		if(graph[eq].equation->equationType == EQFOR){
+			//we remove this connection since we are not using it to solve the current indexes
 			graph[unknown].count -= graph[current_element(it)].indexInterval.size();
 			remove_edge(eq, unknown, graph);
 		}
-		else if(intersects(graph[current_element(it).indexInterval], graph[targetEdge].indexInterval)){
+		else if(intersects(graph[current_element(it).indexInterval], graph[currentEdge].indexInterval)){
 			int oldSize = graph[current_element(it)].indexInterval.size();
-			graph[current_element(it)].indexInterval -= graph[targetEdge].indexInterval;
+			graph[current_element(it)].indexInterval -= graph[currentEdge].indexInterval;
 			graph[unknown].count -= (oldSize - graph[current_element(it)].indexInterval.size());
-			//if the equation connected to the edge pointed by 'it' is a FOR
 		}
 		it++;
 	}
-	*/
 }
 
 /*
