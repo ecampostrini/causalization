@@ -180,7 +180,7 @@ CausalizationStrategy::causalize(){
 				equationNumber--;
 				unknownNumber--;
 				equationDescriptors->erase(iter);
-				unknownDescriptors->remove(unknown);
+				unknownDescriptors->remove(eq);
 
 			}
 		}else{
@@ -191,9 +191,15 @@ CausalizationStrategy::causalize(){
 				//causalizeNto1(unknowns, eq, e);
 				remove_out_edge_if(eq, boost::lambda::_1 != e, graph);
 				remove_edge(e, graph);
-				equationNumber--;
-				//unknownNumber -=
-			}
+				equationNumber -= graph[eq].count;
+				unknownNumber -= graph[unknown].count;
+				unknownDescriptors->erase(iter);
+				equationDescriptors->remove(eq);
+
+			}/*else{
+				CausalizationGraph::out_edge_iterator it, end;
+				tie(it, end) = oute_edges(unk)		
+			}*/
 		}
 	}
 }
