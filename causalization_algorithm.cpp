@@ -198,7 +198,23 @@ CausalizationStrategy::causalize(){
 
 			}/*else{
 				CausalizationGraph::out_edge_iterator it, end;
-				tie(it, end) = oute_edges(unk)		
+				tie(it, end) = out_edges(unknown);
+				while(it != end){
+					Edge e = *it;
+					Vertex eq = target(e, graph);
+					if(graph[eq].equation->equationType == EQFOR){
+						//for the moment we dont do anything here, we
+						//just let the equation side take care of the FORs
+					}else{
+						//EQEQUALITY
+						if(graph[current_element(it)].indexInterval.size() == 1){
+							//if there is only 1 variable involved	
+							remove_out_edge_if(eq, boost::lambda::_1 != e, graph);
+
+						}
+					}
+					it++;
+				}
 			}*/
 		}
 	}
