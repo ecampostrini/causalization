@@ -37,9 +37,8 @@ CausalizationStrategy::CausalizationStrategy(CausalizationGraph g){
 	}
 }
 
-int
+void
 CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge currentEdge){
-	int num_removed = 0;
 	assert(boost::icl::size(graph[currentEdge].indexInterval) != 0);
 	interval_set<int> toRemove;
 	CausalizationGraph::out_edge_iterator it, end;
@@ -56,10 +55,7 @@ CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge currentEdge){
 		}
 		it++;
 	}
-	num_removed = graph[currentEdge].indexInterval.size();
-	graph[unknown].count -= num_removed;
-	remove_edge(currentEdge, graph);
-	return num_removed;	
+	//remove_edge(currentEdge, graph);
 }
 
 void 
@@ -107,14 +103,13 @@ CausalizationStrategy::causalize(){
 				}else{
 					//its an array
 					assert(boost::icl::size(graph[e].indexInterval) == 1);
-					int num_removed;
 					//causalize1toN(unknown, eq, graph[e].indexInterval);
-					num_removed = remove_edge_from_array(unknown, e);
+					remove_edge_from_array(unknown, e);
 					equationNumber--;
+					unknownNumber -= graph[e].indexInterval.size();
 					equationDescriptors->erase(iter);
 					if(graph[unknown].count == 0){
 						unknownDescriptors->remove(unknown);
-						unknownNumber -= num_removed;
 					}
 				}
 			}else if(out_degree(eq, graph) == 0){

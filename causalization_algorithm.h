@@ -7,7 +7,7 @@ class CausalizationStrategy{
 		void causalize();
 		MMO_EquationList getEquations();
 	private:
-		int remove_edge_from_array(Vertex, Edge);
+		void remove_edge_from_array(Vertex, Edge);
 		CausalizationGraph graph;
 		AST_Integer equationNumber;
 		AST_Integer unknownNumber;
