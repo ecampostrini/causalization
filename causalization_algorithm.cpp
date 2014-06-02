@@ -40,7 +40,6 @@ CausalizationStrategy::CausalizationStrategy(CausalizationGraph g){
 void
 CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge currentEdge){
 	assert(boost::icl::size(graph[currentEdge].indexInterval) != 0);
-	interval_set<int> toRemove;
 	CausalizationGraph::out_edge_iterator it, end, auxiliaryIter;
 	tie(auxiliaryIter, end) = out_edges(unknown, graph);
 	for(it = auxiliaryIter; it != end; it = auxiliaryIter){
@@ -83,7 +82,8 @@ void
 CausalizationStrategy::causalize(){	
 	assert(equationNumber == unknownNumber);
 	if(equationDescriptors->empty()) return;
-
+	
+	list<Vertex>::size_type numAcausalEqs = equationDescriptors->size();
 	list<Vertex>::iterator iter, auxiliaryIter;
 	auxiliaryIter = equationDescriptors->begin();
 	for(iter = auxiliaryIter; iter != equationDescriptors->end(); iter = auxiliaryIter){
@@ -121,25 +121,30 @@ CausalizationStrategy::causalize(){
 			}else if(out_degree(eq, graph) == 0){
 				ERROR("Problem is singular, not supported yet\n");
 			}
-		}/*else if(eqType == EQFOR){
+		}else if(eqType == EQFOR){
 			if(out_degree(eq,graph) == 1){
+				//only one edge, we causalize it
 				Edge e = *out_edges(eq, graph).first;
 				Vertex unknown = target(e, graph);
-				if(graph[e].indexes.empty()){
-					//its a regular variable and we just solve 
+				if(boost::icl::is_empty(graph[e].indexInterval)){
+					//its a regular variable and we just causalize
 					//arrays in the FOR
+					ERROR("Trying to causalize a regular variable with a FOR\n");
 				}else{
 					//only one variable in the FOR, we causalize it
-					//TODO MAKECAUSAL
+					causalize1toN(unknown, eq, e);
 					remove_edge_from_array(unknown, e);
 					equationNumber -= graph[eq].count;
-					unknownNumber -= graph[eq].count; //the array may have more variables 
-					if(unknownNumber == 0){
+					unknownNumber -= graph[e].indexInterval.size();
+					//the array may have more variables
+					graph[unknown].count -= graph[e].indexInterval.size();
+					if(graph[unknown].count == 0){
 						unknownDescriptors->remove(unknown);
 					}
 					equationDescriptors->erase(iter);
 				}
-			}else{
+			}
+			/*else{
 				//if only one of the edges has weight == size of range
 				// then thats the one we are causalizing 
 				CausalizationGraph::out_edge_iterator begin, end, it;
@@ -160,11 +165,11 @@ CausalizationStrategy::causalize(){
 					//TODO Makecausal
 					remove_edge_from_array(targetEdge,toRemove);
 				}
-			}
+			}*/
 		}else{
 			ERROR("CausalizationStrategy::causalize:"
 			      "Equation type not supported\n");		
-		}*/
+		}
 	}
 	
 	//now we process the unknowns' side
@@ -188,8 +193,8 @@ CausalizationStrategy::causalize(){
 			//we make sure we have an array variable
 			CausalizationGraph::out_edge_iterator it, end, auxiliaryIter2;
 			tie(auxiliaryIter2, end) = out_edges(unknown, graph);
-			//while(it != end){
 			for(it = auxiliaryIter2; it != end; it = auxiliaryIter2){
+				//we check if the indexes of the edge don't appear in other equations
 				auxiliaryIter2++;
 				Edge e = *it;
 				CausalizationGraph::out_edge_iterator _it, _end;
@@ -211,9 +216,11 @@ CausalizationStrategy::causalize(){
 					unknownNumber -= graph[e].indexInterval.size();
 					equationDescriptors->remove(eq);
 				}
-				//it++;
 			}
 		}
+	}
+	if(numAcausalEqs == equationDescriptors->size()){
+		ERROR("Loop detected! We don't handle loops yet!\n");
 	}
 	causalize();
 }

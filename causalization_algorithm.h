@@ -6,6 +6,7 @@ class CausalizationStrategy{
 		CausalizationStrategy(CausalizationGraph g);			
 		void causalize();
 		MMO_EquationList getEquations();
+		void print();
 	private:
 		void remove_edge_from_array(Vertex, Edge);
 		CausalizationGraph graph;

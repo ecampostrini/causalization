@@ -76,6 +76,7 @@ int main(int argc, char** argv){
 	CausalizationGraph g = gb->makeGraph();
 	CausalizationStrategy *cs = new CausalizationStrategy(g);
 	cs->causalize();
+	cs->print();
 	//GraphPrinter gp(g);
 	//gp.printGraph();
 	return 0;
