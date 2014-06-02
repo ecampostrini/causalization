@@ -176,7 +176,7 @@ CausalizationStrategy::causalize(){
 				assert(boost::icl::is_empty(graph[e].indexInterval));
 				//causalizeNto1(unknown, eq, graph[e].indexInterval);
 				remove_out_edge_if(eq, boost::lambda::_1 != e, graph);
-				remove_edge(e, graph);
+				//remove_edge(e, graph);
 				equationNumber--;
 				unknownNumber--;
 				equationDescriptors->erase(iter);
@@ -190,32 +190,39 @@ CausalizationStrategy::causalize(){
 				Vertex eq = target(e, graph);
 				//causalizeNto1(unknowns, eq, e);
 				remove_out_edge_if(eq, boost::lambda::_1 != e, graph);
-				remove_edge(e, graph);
+				//remove_edge(e, graph);
 				equationNumber -= graph[eq].count;
 				unknownNumber -= graph[unknown].count;
 				unknownDescriptors->erase(iter);
 				equationDescriptors->remove(eq);
 
-			}/*else{
+			}else{
 				CausalizationGraph::out_edge_iterator it, end;
-				tie(it, end) = out_edges(unknown);
+				tie(it, end) = out_edges(unknown, graph);
 				while(it != end){
 					Edge e = *it;
-					Vertex eq = target(e, graph);
-					if(graph[eq].equation->equationType == EQFOR){
-						//for the moment we dont do anything here, we
-						//just let the equation side take care of the FORs
-					}else{
-						//EQEQUALITY
-						if(graph[current_element(it)].indexInterval.size() == 1){
-							//if there is only 1 variable involved	
-							remove_out_edge_if(eq, boost::lambda::_1 != e, graph);
-
+					CausalizationGraph::out_edge_iterator _it, _end;
+					tie(_it, _end) = out_edges(unknown, graph);
+					while(_it != _end){
+						Edge e2 = *_it;
+						if(intersects(graph[e].indexInterval, graph[e2].indexInterval)){
+							break;				
 						}
+
+						_it++;
+					}
+					if(_it == _end){
+						//there is no intersection, we causalize it
+						Vertex eq = target(e, graph);
+						//causalizeNto1(unknown, eq, e);
+						remove_out_edge_if(eq, boost::lambda::_1 != e, graph);
+						equationNumber -= graph[eq].count;
+						unknownNumber -= graph[e].indexInterval.size();
+						equationDescriptors->remove(eq);
 					}
 					it++;
 				}
-			}*/
+			}
 		}
 	}
 }
