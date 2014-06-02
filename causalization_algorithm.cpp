@@ -71,6 +71,15 @@ CausalizationStrategy::causalize1toN(Vertex u, Vertex eq, Edge e){
 	equations1toN.push_back(c_var);
 }
 
+void 
+CausalizationStrategy::causalizeNto1(Vertex u, Vertex eq, Edge e){
+	CausalizedVar c_var;
+	c_var.unknown = graph[u];
+	c_var.equation = graph[eq];
+	c_var.edge = graph[e];
+	equationsNto1.push_back(c_var);		
+}
+
 void
 CausalizationStrategy::causalize(){	
 	assert(equationNumber == unknownNumber);
@@ -88,7 +97,7 @@ CausalizationStrategy::causalize(){
 				if (graph[unknown].count == 0){
 					//its a regular variable
 					assert(boost::icl::is_empty(graph[e].indexInterval));
-					//causalize1toN(unknown, eq, graph[e].indexInterval);
+					causalize1toN(unknown, eq, e);
 					remove_out_edge_if(unknown, boost::lambda::_1 != e, graph);
 					//remove_edge(e, graph);
 					equationNumber--;
