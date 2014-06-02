@@ -62,18 +62,14 @@ CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge currentEdge){
 	return num_removed;	
 }
 
-/*
-void causalize1toN(Vertex unknown, Vertex equation, boost::icl::discrete_interval<int> indexInterval){
+void 
+CausalizationStrategy::causalize1toN(Vertex u, Vertex eq, Edge e){
 	CausalizedVar c_var;
-	c_var.variableName = unknown.variableName;
-	c_var.isState = unknown.isState;
-	c_var.index = arrayPos;
-	c_var.equation = equation.equation;
-	//c_var.indexInterval = boost::icl::construct< boost::icl::discrete_interval<int> > (0, 0, boost::icl::interval_bounds::open());
-	c_var.indexInterval = indexInterval;
+	c_var.unknown = graph[u];
+	c_var.equation = graph[eq];
+	c_var.edge = graph[e];
 	equations1toN.push_back(c_var);
 }
-*/
 
 void
 CausalizationStrategy::causalize(){	
@@ -87,14 +83,14 @@ CausalizationStrategy::causalize(){
 		if(eqType == EQEQUALITY){
 			//here we use the classic version of the algorithm
 			if(out_degree(eq, graph) == 1){
-				Edge e = *out_edges(eq, graph).first;			
+				Edge e = *out_edges(eq, graph).first;
 				Vertex unknown = target(e,graph);
 				if (graph[unknown].count == 0){
 					//its a regular variable
 					assert(boost::icl::is_empty(graph[e].indexInterval));
 					//causalize1toN(unknown, eq, graph[e].indexInterval);
 					remove_out_edge_if(unknown, boost::lambda::_1 != e, graph);
-					remove_edge(e, graph);
+					//remove_edge(e, graph);
 					equationNumber--;
 					unknownNumber--;
 					equationDescriptors->erase(iter);

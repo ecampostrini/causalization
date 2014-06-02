@@ -41,11 +41,14 @@ typedef CausalizationGraph::vertex_descriptor Vertex;
 typedef CausalizationGraph::edge_descriptor Edge;
 
 struct CausalizedVar{
-	string variableName;
-	AST_Boolean isState;
-	AST_Integer index; //0: normal variable, != 0: array
-	boost::icl::discrete_interval<int> indexRange;
-	MMO_Equation equation;
+	VertexProperties unknown;
+	VertexProperties equation;
+	EdgeProperties edge;
+	//string variableName;
+	//AST_Boolean isState;
+	//AST_Integer index; //0: normal variable, != 0: array
+	//boost::icl::discrete_interval<int> indexRange;
+	//MMO_Equation equation;
 };
 
 /*Classes for a potential redefinition of the Bundled properties*/

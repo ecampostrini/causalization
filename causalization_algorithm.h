@@ -14,6 +14,6 @@ class CausalizationStrategy{
 		list<Vertex> *equationDescriptors, *unknownDescriptors;
 		vector<CausalizedVar> equations1toN;
 		vector<CausalizedVar> equationsNto1;
-		//causalize1toN(Vertex unknown, Vertex equation);
+		void causalize1toN(Vertex unknown, Vertex equation, Edge e);
 		//causalizeNto1(Vertex unknown, Vertex equation);
 };
