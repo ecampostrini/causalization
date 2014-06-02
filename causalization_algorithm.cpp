@@ -167,61 +167,40 @@ CausalizationStrategy::causalize(){
 		Vertex unknown = current_element(iter);
 		ERROR_UNLESS(out_degree(unknown, graph) != 0, 
 			"Problem is singular, not supported yet\n");
-		if(graph[unknown].count == 0){		
-			//regular variable => we use std algorithm
-			if(out_degree(unknown, graph) == 1){
-				Edge e = *out_edges(unknown, graph).first;
-				Vertex eq = target(e, graph);
-				assert(graph[eq].equation->equationType() == EQEQUALITY);
-				assert(boost::icl::is_empty(graph[e].indexInterval));
-				//causalizeNto1(unknown, eq, graph[e].indexInterval);
-				remove_out_edge_if(eq, boost::lambda::_1 != e, graph);
-				//remove_edge(e, graph);
-				equationNumber--;
-				unknownNumber--;
-				equationDescriptors->erase(iter);
-				unknownDescriptors->remove(eq);
-
-			}
+		if(out_degree(unknown, graph) == 1){
+			Edge e = *out_edges(unknown, graph).first;					
+			Vertex eq = target(e, graph);
+			//causalizeNto1(unknowns, eq, e);
+			remove_out_edge_if(eq, boost::lambda::_1 != e, graph);
+			//remove_edge(e, graph);
+			equationNumber -= graph[eq].count;
+			unknownNumber -= (graph[unknown].count == 0) ? 1 : graph[unknown].count;
+			unknownDescriptors->erase(iter);
+			equationDescriptors->remove(eq);
 		}else{
-			//its an array
-			if(out_degree(unknown, graph) == 1){
-				Edge e = *out_edges(unknown, graph).first;					
-				Vertex eq = target(e, graph);
-				//causalizeNto1(unknowns, eq, e);
-				remove_out_edge_if(eq, boost::lambda::_1 != e, graph);
-				//remove_edge(e, graph);
-				equationNumber -= graph[eq].count;
-				unknownNumber -= graph[unknown].count;
-				unknownDescriptors->erase(iter);
-				equationDescriptors->remove(eq);
-
-			}else{
-				CausalizationGraph::out_edge_iterator it, end;
-				tie(it, end) = out_edges(unknown, graph);
-				while(it != end){
-					Edge e = *it;
-					CausalizationGraph::out_edge_iterator _it, _end;
-					tie(_it, _end) = out_edges(unknown, graph);
-					while(_it != _end){
-						Edge e2 = *_it;
-						if(intersects(graph[e].indexInterval, graph[e2].indexInterval)){
-							break;				
-						}
-
+			CausalizationGraph::out_edge_iterator it, end;
+			tie(it, end) = out_edges(unknown, graph);
+			while(it != end){
+				Edge e = *it;
+				CausalizationGraph::out_edge_iterator _it, _end;
+				tie(_it, _end) = out_edges(unknown, graph);
+				while(_it != _end){
+					Edge e2 = *_it;
+					if(intersects(graph[e].indexInterval, graph[e2].indexInterval)){
+						break;				
+					}
 						_it++;
-					}
-					if(_it == _end){
-						//there is no intersection, we causalize it
-						Vertex eq = target(e, graph);
-						//causalizeNto1(unknown, eq, e);
-						remove_out_edge_if(eq, boost::lambda::_1 != e, graph);
-						equationNumber -= graph[eq].count;
-						unknownNumber -= graph[e].indexInterval.size();
-						equationDescriptors->remove(eq);
-					}
-					it++;
 				}
+				if(_it == _end){
+					//there is no intersection, we causalize it
+					Vertex eq = target(e, graph);
+					//causalizeNto1(unknown, eq, e);
+					remove_out_edge_if(eq, boost::lambda::_1 != e, graph);
+					equationNumber -= graph[eq].count;
+					unknownNumber -= graph[e].indexInterval.size();
+					equationDescriptors->remove(eq);
+				}
+				it++;
 			}
 		}
 	}
