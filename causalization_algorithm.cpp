@@ -86,10 +86,12 @@ void
 CausalizationStrategy::causalize(){	
 	assert(equationNumber == unknownNumber);
 	if(equationDescriptors->empty()) return;
-	cout << "aca! " << endl;
 
-	list<Vertex>::iterator iter;
-	foreach(iter, equationDescriptors){
+	list<Vertex>::iterator iter, auxiliaryIter;
+	auxiliaryIter = equationDescriptors->begin();
+	//foreach(iter, equationDescriptors){
+	for(iter = auxiliaryIter; iter != equationDescriptors->end(); iter = auxiliaryIter){
+		auxiliaryIter++;
 		Vertex eq = current_element(iter);
 		EquationType eqType = graph[current_element(iter)].eqType;
 		if(eqType == EQEQUALITY){
@@ -170,7 +172,10 @@ CausalizationStrategy::causalize(){
 	
 	//now we process the unknowns' side
 	
-	foreach(iter, unknownDescriptors){
+	//foreach(iter, unknownDescriptors){
+	auxiliaryIter = unknownDescriptors->begin();
+	for(iter = auxiliaryIter; iter != unknownDescriptors->end(); iter = auxiliaryIter){
+		auxiliaryIter++;
 		Vertex unknown = current_element(iter);
 		ERROR_UNLESS(out_degree(unknown, graph) != 0, 
 			"Problem is singular, not supported yet\n");
