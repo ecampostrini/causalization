@@ -44,8 +44,14 @@ CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge currentEdge){
 	CausalizationGraph::out_edge_iterator it, end;
 	tie(it, end) = out_edges(unknown, graph);
 	while(it != end){
-		if(current_element(it) == currentEdge) continue;
-		if(!intersects(graph[current_element(it)].indexInterval, graph[currentEdge].indexInterval)) continue;
+		if(current_element(it) == currentEdge){
+			it++;
+			continue;
+		}
+		if(!intersects(graph[current_element(it)].indexInterval, graph[currentEdge].indexInterval)){
+			it++;	
+			continue;
+		}
 		Vertex eq = target(*it, graph);
 		if(graph[eq].equation->equationType() == EQFOR){
 			remove_edge(current_element(it), graph);	
@@ -80,6 +86,7 @@ void
 CausalizationStrategy::causalize(){	
 	assert(equationNumber == unknownNumber);
 	if(equationDescriptors->empty()) return;
+	cout << "aca! " << endl;
 
 	list<Vertex>::iterator iter;
 	foreach(iter, equationDescriptors){
