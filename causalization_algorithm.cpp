@@ -165,8 +165,18 @@ CausalizationStrategy::causalize(){
 				}
 				if(sameWeight == 1){
 					causalize1toN(causalizedUnknown, eq, targetEdge);
-					for(vector< pair<Vertex, Edge> >::iterator it = toRemove.begin(); it != toRemove.end(); it++)
-						remove_edge_from_array(it->first,it->second);
+					remove_edge_from_array(causalizedUnknown, targetEdge);
+					equationNumber -= graph[eq].count;
+					unknownNumber -= graph[targetEdge].indexInterval.size();
+					graph[causalizedUnknown].count -= graph[targetEdge].indexInterval.size();
+					if(graph[causalizedUnknown].count == 0)
+						unknownDescriptors->remove(causalizedUnknown);
+					equationDescriptors->erase(iter);
+					for(vector< pair<Vertex, Edge> >::iterator it = toRemove.begin(); it != toRemove.end(); it++){
+						Vertex unknown = it->first;
+						Edge e = it->second;
+						remove_edge(e, graph);
+					}
 				}
 			}
 		}else{
