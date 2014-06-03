@@ -146,6 +146,8 @@ Occurrence_checker::add_generic_index(AST_Expression index){
 				AST_Expression_Integer _a = binop->left()->getAsInteger();
 				a = _a->val();
 				DEBUG('g', "a: %d\n", a);
+			}else if(binop->left()->expressionType() == EXPCOMPREF){
+				a = 1;		
 			}
 			else{
 				ERROR("Occurrence_checker::add_generic_index, error in expression %s. Index of arrays"
@@ -175,6 +177,7 @@ void
 Occurrence_checker::arrayOccurrence(AST_Expression_ComponentReference cref_exp){
 	AST_Expression indexExp = cref_exp->indexes()->front()->front();
 	AST_Expression indexResult = evaluator->eval(indexExp);
+	//DEBUG('g', "arrayOccurrence variable %s\n", cref_exp->name().c_str());
 	if(indexResult->expressionType() == EXPINTEGER || indexResult->expressionType() == EXPREAL){
 		simpleIndex.insert(indexResult->getAsInteger()->val());
 	}else if(indexResult->expressionType() == indexExp->expressionType()){
