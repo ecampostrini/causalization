@@ -47,14 +47,17 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 						EdgeProperties newEdge;
 						newEdge.genericIndex = *it;
 						if(it->first == 1){
-							forIndexInterval = discrete_interval<int>::closed(lower(forIndexInterval) + it->second, upper(forIndexInterval) + it->second);		
+							//we do an interval shifting
+							forIndexInterval = discrete_interval<int>::closed(lower(forIndexInterval) + it->second, upper(forIndexInterval) + it->second);
 							newEdge.indexInterval.add(forIndexInterval);
 						}else{
-							//in this case we have no other option than to 
+							//here we have an interval with leaps instead of a contiguous one 
+							//(e.g.: {1, 3, 5} instead of {1,2,3,4,5}), so we create an interval with
+							//one item for each value and we put it in the interval_set.
 							interval_set<int> iset;
 							for(int i = lower(forIndexInterval); i <= upper(forIndexInterval); i++){
 								iset.add(discrete_interval<int>::closed(it->first * i + it->second, it->first * i + it->second));
-							}			
+							}
 							newEdge.indexInterval = iset;
 						}
 						edgeList.push_back(newEdge);
