@@ -151,7 +151,7 @@ CausalizationStrategy::causalize(){
 				Edge targetEdge; 
 				Vertex causalizedUnknown;
 				AST_Integer sameWeight = 0;
-				vector< pair<Vertex, Edge> > toRemove;
+				vector<Edge> toRemove;
 				for(boost::tie(begin, end) = out_edges(eq, graph), it = begin; it != end && sameWeight <= 1; it++){
 					Edge e = *it;
 					Vertex unknown = target(e, graph);
@@ -160,11 +160,17 @@ CausalizationStrategy::causalize(){
 						causalizedUnknown = unknown;
 					}
 					if(e != targetEdge && sameWeight <= 1){
-						toRemove.push_back(make_pair(unknown, e));		
+						toRemove.push_back(e);		
 					}
 				}
 				if(sameWeight == 1){
-					causalize1toN(causalizedUnknown, eq, targetEdge);
+					if(toRemove.empty()){
+						//we have to arrange the equations in an 'executable' order
+						causalize1toN(causalizedUnknown, eq, targetEdge);
+					}
+					else{		
+						causalizeNto1(causalizedUnknown, eq, targetEdge);
+					}
 					remove_edge_from_array(causalizedUnknown, targetEdge);
 					equationNumber -= graph[eq].count;
 					unknownNumber -= graph[targetEdge].indexInterval.size();
@@ -172,9 +178,8 @@ CausalizationStrategy::causalize(){
 					if(graph[causalizedUnknown].count == 0)
 						unknownDescriptors->remove(causalizedUnknown);
 					equationDescriptors->erase(iter);
-					for(vector< pair<Vertex, Edge> >::iterator it = toRemove.begin(); it != toRemove.end(); it++){
-						Vertex unknown = it->first;
-						Edge e = it->second;
+					for(vector<Edge>::iterator it = toRemove.begin(); it != toRemove.end(); it++){
+						Edge e = *it;
 						remove_edge(e, graph);
 					}
 				}
