@@ -112,6 +112,7 @@ ReducedGraphBuilder::makeGraph(){
 		vp->type = E;
 		vp->equation = current_element(it);
 		vp->eqType = current_element(it)->equationType();
+		//DEBUG('g', "Equation: %s, eqType: %d\n", vp->equation->print().c_str(), vp->eqType);
 		switch(vp->eqType){
 			case EQFOR:
 				vp->count = getForRangeSize(vp->equation);
@@ -201,9 +202,14 @@ ReducedGraphBuilder::makeGraph(){
 				#ifdef ENABLE_DEBUG_MSG
 				graph_traits<CausalizationGraph>::out_edge_iterator begin, end;			
 				stringstream stri;
-				tie(begin, end) = out_edges(current_element(eqsIt), graph);
+				tie(begin, end) = out_edges(current_element(unIt), graph);
 				stri << "{";
 				while(begin!=end){
+					Vertex eq = target(*begin, graph);
+					if(eq != current_element(eqsIt)){
+						begin++;
+						continue;
+					}
 					if( graph[current_element(begin)].genericIndex.first ){
 						if(!stri.str().empty()) stri << ", ";
 						stri << graph[current_element(begin)].genericIndex.first << " * i + " << graph[current_element(begin)].genericIndex.second;
