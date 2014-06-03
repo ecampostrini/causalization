@@ -129,7 +129,7 @@ CausalizationStrategy::causalize(){
 				if(boost::icl::is_empty(graph[e].indexInterval)){
 					//its a regular variable and we just causalize
 					//arrays in the FOR
-					ERROR("Trying to causalize a regular variable with a FOR\n");
+					ERROR("Trying to causalize a non-array variable with a FOR equation\n");
 				}else{
 					//only one variable in the FOR, we causalize it
 					causalize1toN(unknown, eq, e);
@@ -144,28 +144,31 @@ CausalizationStrategy::causalize(){
 					equationDescriptors->erase(iter);
 				}
 			}
-			/*else{
+			else{
 				//if only one of the edges has weight == size of range
 				// then thats the one we are causalizing 
 				CausalizationGraph::out_edge_iterator begin, end, it;
 				Edge targetEdge; 
-				//Vertex causalizedUnknown;
+				Vertex causalizedUnknown;
 				AST_Integer sameWeight = 0;
-				map<Edge, Vertex> toRemove;
-				for(boost::tie(begin, end) = out_edges(eq, graph), it = begin; it != end; it++){
+				vector< pair<Vertex, Edge> > toRemove;
+				for(boost::tie(begin, end) = out_edges(eq, graph), it = begin; it != end && sameWeight <= 1; it++){
 					Edge e = *it;
 					Vertex unknown = target(e, graph);
-					toRemove.insert(pair<Edge, Vertex>(e, unknown));
-					if(graph[e].indexes.size() == (unsigned) graph[eq].count && sameWeight++ == 0){ 
+					if(graph[e].indexInterval.size() == (unsigned) graph[eq].count && sameWeight++ == 0){ 
 						targetEdge = e;
-						//causalizedUnknown = unknown;
+						causalizedUnknown = unknown;
+					}
+					if(e != targetEdge && sameWeight <= 1){
+						toRemove.push_back(make_pair(unknown, e));		
 					}
 				}
 				if(sameWeight == 1){
-					//TODO Makecausal
-					remove_edge_from_array(targetEdge,toRemove);
+					causalize1toN(causalizedUnknown, eq, targetEdge);
+					for(vector< pair<Vertex, Edge> >::iterator it = toRemove.begin(); it != toRemove.end(); it++)
+						remove_edge_from_array(it->first,it->second);
 				}
-			}*/
+			}
 		}else{
 			ERROR("CausalizationStrategy::causalize:"
 			      "Equation type not supported\n");		
