@@ -152,11 +152,20 @@ Occurrence_checker::add_generic_index(AST_Expression index){
 		      		  " must have the form: a*i + b for the moment.\n", index->print().c_str());
 			}
 		}else if(binop->binopType() == BINOPMULT){
+			//the expression is a*i
 			b = 0;		
 			a = binop->left()->getAsInteger()->val();
 		}
 		genericIndexSet.insert(pair<AST_Integer, AST_Integer> (a,b));
-	}else{
+	}
+	else if(index->expressionType() == EXPCOMPREF){
+		//the expression is just 'i'
+		a = 1;
+		b = 0;
+		genericIndexSet.insert(make_pair(a,b));
+			
+	}
+	else{
 		ERROR("Occurrence_checker::add_generic_index: index of arrays"
 		      " must have the form: a*i + b for the momento\n");
 	}
