@@ -35,7 +35,7 @@ GraphPrinter::printGraph(){
 	stri << "graph G{" << endl;
 	INSERT_TAB
 		MAKE_SPACE
-		stri << "subgraph ecuaciones{" << endl;
+		stri << "subgraph cluster0{" << endl;
 		INSERT_TAB
 			MAKE_SPACE
 			stri << "label = \"Ecuaciones\";" << endl;
@@ -60,7 +60,7 @@ GraphPrinter::printGraph(){
 
 	INSERT_TAB
 		MAKE_SPACE
-		stri << "subgraph incognitas{" << endl;
+		stri << "subgraph cluster1{" << endl;
 		INSERT_TAB
 			MAKE_SPACE
 			stri << "label = \"Incognitas\";" << endl;
@@ -90,7 +90,8 @@ GraphPrinter::printGraph(){
 			for(tie(ei, ei_end) = out_edges(*eq_it, graph); ei != ei_end; ei++){
 				Vertex unknown = target(*ei, graph);
 				MAKE_SPACE;
-				stri << graph[*eq_it].index << " -- " << graph[unknown].variableName << ";"<< endl;
+				stri << graph[*eq_it].index << " -- " << graph[unknown].variableName;
+				stri << " [label = \""<< graph[*ei].indexInterval  << "\"];" << endl;
 			}
 		}
 	DELETE_TAB
