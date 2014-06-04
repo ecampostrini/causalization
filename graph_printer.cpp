@@ -2,28 +2,100 @@
 #include <causalize/causalize2/graph_printer.h>
 
 #include <iostream>
-#include <boost/graph/graphviz.hpp>
+#include <fstream>
+#include <sstream>
+//#include <boost/graph/graphviz.hpp>
+#include <boost/graph/adjacency_list.hpp>
 
 using namespace boost;
+#define MAKE_SPACE for(int __i=0; __i<depth; __i++) stri << " ";
+#define TAB_SPACE 2
+#define INSERT_TAB depth += TAB_SPACE;
+#define DELETE_TAB depth -= TAB_SPACE;
 
 GraphPrinter::GraphPrinter(CausalizationGraph g)
 {
 	graph = g;
-	/*TODO exception handling onopening file
-	outFile.open(oFile);
-	if(!outFile.is_open()){
-		ERROR("GraphPrinter: error while opening the output file\n");
-	}*/
+	CausalizationGraph::vertex_iterator vi, vi_end;
+	for(tie(vi, vi_end) = vertices(graph); vi!= vi_end; vi++){
+		if(graph[*vi].type == E){
+			equationDescriptors.push_back(*vi);
+		}else{
+		unknownDescriptors.push_back(*vi);		
+		}
+	}
 }
 
-void
+string
 GraphPrinter::printGraph(){
-  	//dynamic_properties dp;
-  	//dp.property("id", get(vertex_name, g));
-  	//dp.property("weight", get(edge_weight, g));
+	stringstream stri;
+	ofstream out("grafo.dot");
+	int depth = 0;
 
-  	//write_graphviz(std::cout, graph, default_writer(), default_writer(), default_writer());//, dp, std::string("id"));
-			
-	//boost::write_graphviz(std::cout, graph);
-	
+	stri << "graph G{" << endl;
+	INSERT_TAB
+		MAKE_SPACE
+		stri << "subgraph ecuaciones{" << endl;
+		INSERT_TAB
+			MAKE_SPACE
+			stri << "label = \"Ecuaciones\";" << endl;
+			MAKE_SPACE
+			stri << "edge [style=invis];" << endl;
+			MAKE_SPACE
+			for(list<Vertex>::iterator it=equationDescriptors.begin(); it!=equationDescriptors.end(); it++){
+				list<Vertex>::iterator aux = it;
+				aux++;
+				stri << graph[*it].index;
+				if((aux) != equationDescriptors.end()){
+					stri << " -- ";		
+				}else{
+					stri << ";" << endl;		
+				}
+			}
+		DELETE_TAB
+		MAKE_SPACE
+		stri << "}" << endl;
+	DELETE_TAB
+
+
+	INSERT_TAB
+		MAKE_SPACE
+		stri << "subgraph incognitas{" << endl;
+		INSERT_TAB
+			MAKE_SPACE
+			stri << "label = \"Incognitas\";" << endl;
+			MAKE_SPACE
+			stri << "edge [style=invis];" << endl;
+			MAKE_SPACE
+			for(list<Vertex>::iterator it=unknownDescriptors.begin(); it!=unknownDescriptors.end(); it++){
+				list<Vertex>::iterator aux = it;
+				aux++;
+				stri << graph[*it].variableName;
+				if((aux) != unknownDescriptors.end()){
+					stri << " -- ";		
+				}else{
+					stri << ";" << endl;		
+				}
+			}
+		DELETE_TAB
+		MAKE_SPACE
+		stri << "}" << endl;
+	DELETE_TAB
+
+	INSERT_TAB
+		MAKE_SPACE
+		stri << "edge [constraint=false];" << endl;
+		for(list<Vertex>::iterator  eq_it = equationDescriptors.begin(); eq_it != equationDescriptors.end(); eq_it++){
+			CausalizationGraph::out_edge_iterator ei, ei_end;
+			for(tie(ei, ei_end) = out_edges(*eq_it, graph); ei != ei_end; ei++){
+				Vertex unknown = target(*ei, graph);
+				MAKE_SPACE;
+				stri << graph[*eq_it].index << " -- " << graph[unknown].variableName << ";"<< endl;
+			}
+		}
+	DELETE_TAB
+	stri << "}" << endl;
+	out << stri.str();
+	out.close();
+	return stri.str();
 }

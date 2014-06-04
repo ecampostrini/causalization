@@ -4,9 +4,11 @@
 class GraphPrinter{
 	public:
 		GraphPrinter(CausalizationGraph g);
-		void printGraph();
+		string printGraph();
 	private:
 		CausalizationGraph graph;
+		list<Vertex> equationDescriptors;
+		list<Vertex> unknownDescriptors;
 		//ofstream outFile;
 
 };
