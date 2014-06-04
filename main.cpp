@@ -74,10 +74,15 @@ int main(int argc, char** argv){
 	}	
 	ReducedGraphBuilder *gb = new ReducedGraphBuilder(mmo_class);
 	CausalizationGraph g = gb->makeGraph();
+
+	//para debuggeo: crea archivo grafo.dot 
+	GraphPrinter gp(g);
+	gp.printGraph();
+
 	CausalizationStrategy *cs = new CausalizationStrategy(g);
 	cs->causalize();
+	cout << "Resultado de la causalizacion:" << endl;
 	cs->print();
-	//GraphPrinter gp(g);
-	//gp.printGraph();
+
 	return 0;
 }
