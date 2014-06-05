@@ -67,7 +67,9 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 					//occurrence of a particular position of the array
 					for(set<AST_Integer>::iterator it = simpleIndex.begin(); it != simpleIndex.end(); it++){
 						EdgeProperties newEdge;
-						newEdge.genericIndex.first = newEdge.genericIndex.second = 0;
+						//newEdge.genericIndex.first = newEdge.genericIndex.second = 0;
+						newEdge.genericIndex.first = 1;
+						newEdge.genericIndex.second = 0;
 						newEdge.indexInterval.add(discrete_interval<int>::closed(*it, *it));
 						//newEdge.indexInterval = construct < discrete_interval<int> > (*it, *it, interval_bounds::closed());
 						edgeList.push_back(newEdge);

@@ -45,17 +45,70 @@ CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge currentEdge){
 	for(it = auxiliaryIter; it != end; it = auxiliaryIter){
 		auxiliaryIter++;
 		if(current_element(it) == currentEdge){continue;}
+		if(graph[current_element(it)].genericIndex.first > 1 || graph[currentEdge].genericIndex.first > 1){
+			//we transform the first and the last element of each interval
+			//we represent [a,b] for targetEdge as [target_first, target_last]
+			//and [a,b] for currentEdge as [current_first, current_last]
+			Edge cEdge = current_element(it);
+			int target_first = first(graph[currentEdge].indexInterval);
+			int target_last  = last(graph[currentEdge].indexInterval);
+			int current_first = first(graph[cEdge].indexInterval);
+			int current_last = last(graph[cEdge].indexInterval);
+			if(graph[currentEdge].genericIndex.first > 1){
+				target_first = graph[currentEdge].genericIndex.first * target_first + graph[currentEdge].genericIndex.second;		
+				target_last  = graph[currentEdge].genericIndex.first * target_last + graph[currentEdge].genericIndex.second;
+			}
+			if(graph[cEdge].genericIndex.first > 1){
+				current_first = graph[cEdge].genericIndex.first * current_first + graph[cEdge].genericIndex.second;
+				current_last  = graph[cEdge].genericIndex.first * current_last  + graph[cEdge].genericIndex.second;		
+			}
+			//we check if we have an interval intersection between
+			//[a,b] (target edge) and [c,d] (current edge)
+			int int_case = -1;
+			if(current_first == target_first)
+				//a == c
+				int_case = 0; 
+			else if(current_first < target_first && current_last >= target_first)
+				//a > c and d >= a
+				int_case = 1;
+			else if(current_first > target_first && target_last >= current_first)
+				//a < c and b >= c
+				int_case = 2;
+			else{
+				//there is no intersection, we jump to the next edge of the array 
+				continue;
+			}
+			switch(int_case){
+				case 0:
+					
+					break;
+				case 1:
+					break;
+				case 2:
+					break;
+				default:
+					ERROR("CausalizationAlgorithm::remove_edge_from_array: "
+						  "Default case. Shouldn't be here. Compiler's mistake.\n");
+					break;		
+			}
+
+
+		}
 		if(!intersects(graph[current_element(it)].indexInterval, graph[currentEdge].indexInterval)){continue;}
 		Vertex eq = target(*it, graph);
-		if(graph[eq].equation->equationType() == EQFOR){
-			remove_edge(current_element(it), graph);	
-		}
-		else{
-			graph[current_element(it)].indexInterval -= graph[currentEdge].indexInterval;
-			if(boost::icl::is_empty(graph[current_element(it)].indexInterval)){
-				remove_edge(current_element(it), graph);
-			}
-		}
+		//cout << graph[current_element(it)].indexInterval << endl;
+		//cout << "a: " << graph[current_element(it)].genericIndex.first;
+		//cout << ", indexInterval last: " << last(graph[current_element(it)].indexInterval) << endl;
+		remove_edge(current_element(it), graph);
+		//if(graph[eq].equation->equationType() == EQFOR){
+		//	remove_edge(current_element(it), graph);	
+		//}
+		//else{
+		//	graph[current_element(it)].indexInterval -= graph[currentEdge].indexInterval;
+		//	if(boost::icl::is_empty(graph[current_element(it)].indexInterval)){
+		//		remove_edge(current_element(it), graph);
+		//	}
+		//}
 	}
 	remove_edge(currentEdge, graph);
 }
@@ -144,6 +197,7 @@ CausalizationStrategy::causalize(){
 					equationDescriptors->erase(iter);
 				}
 			}
+			/*
 			else{
 				//if only one of the edges has weight == size of range
 				// then thats the one we are causalizing 
@@ -155,11 +209,13 @@ CausalizationStrategy::causalize(){
 				for(boost::tie(begin, end) = out_edges(eq, graph), it = begin; it != end && sameWeight <= 1; it++){
 					Edge e = *it;
 					Vertex unknown = target(e, graph);
+					//DEBUG('g', "Variable %s, indexInterval size %d\n", graph[unknown].variableName.c_str(), graph[e].indexInterval.size());
 					if(graph[e].indexInterval.size() == (unsigned) graph[eq].count && sameWeight++ == 0){ 
 						targetEdge = e;
 						causalizedUnknown = unknown;
 					}
 					if(e != targetEdge && sameWeight <= 1){
+						DEBUG('g', "toRemove: %s\n", graph[unknown].variableName.c_str());
 						toRemove.push_back(e);		
 					}
 				}
@@ -168,7 +224,7 @@ CausalizationStrategy::causalize(){
 						//we have to arrange the equations in an 'executable' order
 						causalize1toN(causalizedUnknown, eq, targetEdge);
 					}
-					else{		
+					else{
 						causalizeNto1(causalizedUnknown, eq, targetEdge);
 					}
 					remove_edge_from_array(causalizedUnknown, targetEdge);
@@ -183,7 +239,7 @@ CausalizationStrategy::causalize(){
 						remove_edge(e, graph);
 					}
 				}
-			}
+			}*/
 		}else{
 			ERROR("CausalizationStrategy::causalize:"
 			      "Equation type not supported\n");		
