@@ -50,49 +50,51 @@ CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge currentEdge){
 			//we represent [a,b] for targetEdge as [target_first, target_last]
 			//and [a,b] for currentEdge as [current_first, current_last]
 			Edge cEdge = current_element(it);
-			int target_first = first(graph[currentEdge].indexInterval);
-			int target_last  = last(graph[currentEdge].indexInterval);
-			int current_first = first(graph[cEdge].indexInterval);
-			int current_last = last(graph[cEdge].indexInterval);
+			int a = first(graph[currentEdge].indexInterval);
+			int b = last(graph[currentEdge].indexInterval);
+			int c = first(graph[cEdge].indexInterval);
+			int d = last(graph[cEdge].indexInterval);
 			if(graph[currentEdge].genericIndex.first > 1){
-				target_first = graph[currentEdge].genericIndex.first * target_first + graph[currentEdge].genericIndex.second;		
-				target_last  = graph[currentEdge].genericIndex.first * target_last + graph[currentEdge].genericIndex.second;
+				a = graph[currentEdge].genericIndex.first * a + graph[currentEdge].genericIndex.second;		
+				b = graph[currentEdge].genericIndex.first * b + graph[currentEdge].genericIndex.second;
 			}
 			if(graph[cEdge].genericIndex.first > 1){
-				current_first = graph[cEdge].genericIndex.first * current_first + graph[cEdge].genericIndex.second;
-				current_last  = graph[cEdge].genericIndex.first * current_last  + graph[cEdge].genericIndex.second;		
+				c = graph[cEdge].genericIndex.first * c + graph[cEdge].genericIndex.second;
+				d = graph[cEdge].genericIndex.first * d  + graph[cEdge].genericIndex.second;		
 			}
 			//we check if we have an interval intersection between
 			//[a,b] (target edge) and [c,d] (current edge)
-			int int_case = -1;
-			if(current_first == target_first)
-				//a == c
-				int_case = 0; 
-			else if(current_first < target_first && current_last >= target_first)
-				//a > c and d >= a
-				int_case = 1;
-			else if(current_first > target_first && target_last >= current_first)
-				//a < c and b >= c
-				int_case = 2;
+			if(c == a || c == b	|| d == a || d == b){
+				//we have intersection in some extreme!
+				remove_edge(cEdge, graph);
+			}
+			else if((c < a && d > a) || (c > a && b > c)){
+				//a > c and d > a
+				if(d < b){
+					int d_ = d - graph[currentEdge].genericIndex.second; 
+					if(d_ % graph[currentEdge].genericIndex.first == 0){
+						remove_edge(cEdge, graph);		
+					}
+				}else{
+					int b_ = b - graph[cEdge].genericIndex.second;
+					if(b_ % graph[cEdge].genericIndex.first == 0){
+						remove_edge(cEdge, graph);		
+					}
+				}
+			}
+			
+			//else if(c > a && b > c)
+			//	if(d < b){
+			//				
+			//	}else{
+			//			
+			//	}
+			//	a < c and b > c
 			else{
 				//there is no intersection, we jump to the next edge of the array 
-				continue;
+				//continue;
 			}
-			switch(int_case){
-				case 0:
-					
-					break;
-				case 1:
-					break;
-				case 2:
-					break;
-				default:
-					ERROR("CausalizationAlgorithm::remove_edge_from_array: "
-						  "Default case. Shouldn't be here. Compiler's mistake.\n");
-					break;		
-			}
-
-
+			continue;
 		}
 		if(!intersects(graph[current_element(it)].indexInterval, graph[currentEdge].indexInterval)){continue;}
 		Vertex eq = target(*it, graph);
