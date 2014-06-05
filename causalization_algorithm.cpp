@@ -70,20 +70,17 @@ CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge currentEdge){
 			if(c == a || c == b	|| d == a || d == b){
 				//we have intersection in some extreme!
 				remove_edge(cEdge, graph);
-				cout << "Elimino arista: " << graph[cEdge].indexInterval;
 			}
 			else if((c < a && d > a) || (c > a && b > c)){
 				if(d < b){
 					int d_ = d - graph[currentEdge].genericIndex.second; 
 					if(d_ % graph[currentEdge].genericIndex.first == 0){
 						remove_edge(cEdge, graph);		
-						cout << "Elimino arista: " << graph[cEdge].indexInterval;
 					}
 				}else{
 					int b_ = b - graph[cEdge].genericIndex.second;
 					if(b_ % graph[cEdge].genericIndex.first == 0){
 						remove_edge(cEdge, graph);		
-						cout << "Elimino arista: " << graph[cEdge].indexInterval;
 					}
 				}
 			}
@@ -94,20 +91,7 @@ CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge currentEdge){
 			continue;
 		}
 		if(!intersects(graph[current_element(it)].indexInterval, graph[currentEdge].indexInterval)){continue;}
-		Vertex eq = target(*it, graph);
-		//cout << graph[current_element(it)].indexInterval << endl;
-		//cout << "a: " << graph[current_element(it)].genericIndex.first;
-		//cout << ", indexInterval last: " << last(graph[current_element(it)].indexInterval) << endl;
 		remove_edge(current_element(it), graph);
-		//if(graph[eq].equation->equationType() == EQFOR){
-		//	remove_edge(current_element(it), graph);	
-		//}
-		//else{
-		//	graph[current_element(it)].indexInterval -= graph[currentEdge].indexInterval;
-		//	if(boost::icl::is_empty(graph[current_element(it)].indexInterval)){
-		//		remove_edge(current_element(it), graph);
-		//	}
-		//}
 	}
 	remove_edge(currentEdge, graph);
 }
