@@ -79,13 +79,14 @@ ReducedGraphBuilder::getForRangeSize(MMO_Equation eq){
 		temp = eval(current_element(it));
 		it++;
 		if(it == range->end()){
-			/* here temp == the last element and the step is 1 */
+			/* here the step is 1 and temp == the last element */
 			while (temp > first){
 				first += 1.;
 				size++;	
 			}
 		}
 		else{
+			ERROR("ReducedGraphBuilder::getForRangeSize: FOR ranges with leaps not supported yet\n");
 			/* here temp == step */
 			AST_Real last;
 			last = eval(current_element(it));		
