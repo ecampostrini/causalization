@@ -40,6 +40,7 @@ CausalizationStrategy::CausalizationStrategy(CausalizationGraph g){
 void
 CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge currentEdge){
 	assert(boost::icl::size(graph[currentEdge].indexInterval) != 0);
+	DEBUG('g', "Removing edge for unknown: %s\n", graph[unknown].variableName.c_str());
 	CausalizationGraph::out_edge_iterator it, end, auxiliaryIter;
 	tie(auxiliaryIter, end) = out_edges(unknown, graph);
 	for(it = auxiliaryIter; it != end; it = auxiliaryIter){
@@ -54,6 +55,7 @@ CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge currentEdge){
 			int b = last(graph[currentEdge].indexInterval);
 			int c = first(graph[cEdge].indexInterval);
 			int d = last(graph[cEdge].indexInterval);
+			//DEBUG('g', "tEdge [%d, %d], cEdge[%d, %d]\n", a,b,c,d);
 			if(graph[currentEdge].genericIndex.first > 1){
 				a = graph[currentEdge].genericIndex.first * a + graph[currentEdge].genericIndex.second;		
 				b = graph[currentEdge].genericIndex.first * b + graph[currentEdge].genericIndex.second;
@@ -62,34 +64,29 @@ CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge currentEdge){
 				c = graph[cEdge].genericIndex.first * c + graph[cEdge].genericIndex.second;
 				d = graph[cEdge].genericIndex.first * d  + graph[cEdge].genericIndex.second;		
 			}
+			DEBUG('g', "tEdge [%d, %d], cEdge[%d, %d]\n", a,b,c,d);
 			//we check if we have an interval intersection between
 			//[a,b] (target edge) and [c,d] (current edge)
 			if(c == a || c == b	|| d == a || d == b){
 				//we have intersection in some extreme!
 				remove_edge(cEdge, graph);
+				cout << "Elimino arista: " << graph[cEdge].indexInterval;
 			}
 			else if((c < a && d > a) || (c > a && b > c)){
-				//a > c and d > a
 				if(d < b){
 					int d_ = d - graph[currentEdge].genericIndex.second; 
 					if(d_ % graph[currentEdge].genericIndex.first == 0){
 						remove_edge(cEdge, graph);		
+						cout << "Elimino arista: " << graph[cEdge].indexInterval;
 					}
 				}else{
 					int b_ = b - graph[cEdge].genericIndex.second;
 					if(b_ % graph[cEdge].genericIndex.first == 0){
 						remove_edge(cEdge, graph);		
+						cout << "Elimino arista: " << graph[cEdge].indexInterval;
 					}
 				}
 			}
-			
-			//else if(c > a && b > c)
-			//	if(d < b){
-			//				
-			//	}else{
-			//			
-			//	}
-			//	a < c and b > c
 			else{
 				//there is no intersection, we jump to the next edge of the array 
 				//continue;
