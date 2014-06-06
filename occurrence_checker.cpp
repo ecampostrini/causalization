@@ -37,7 +37,6 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 				EdgeProperties newEdge;
 				newEdge.genericIndex.first = newEdge.genericIndex.second = 0;
 				newEdge.indexInterval.add(discrete_interval<int>::open(0, 0));
-				//newEdge.indexInterval = construct< discrete_interval<int> > (0,0,interval_bounds::open());
 				edgeList.push_back(newEdge);
 			}else{
 				//its an array
@@ -46,25 +45,7 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 					for(set< pair<AST_Integer, AST_Integer> >::iterator it = genericIndexSet.begin(); it != genericIndexSet.end(); it++){
 						EdgeProperties newEdge;
 						newEdge.genericIndex = *it;
-						newEdge.genericIndex.first = it->first;
-						newEdge.genericIndex.second = it->second;
 						newEdge.indexInterval.add(forIndexInterval);
-
-						/*
-						if(it->first == 1){
-							//we do an interval shifting
-							forIndexInterval = discrete_interval<int>::closed(lower(forIndexInterval) + it->second, upper(forIndexInterval) + it->second);
-							newEdge.indexInterval.add(forIndexInterval);
-						}else{
-							//here we have an interval with leaps instead of a contiguous one 
-							//(e.g.: {1, 3, 5} instead of {1,2,3,4,5}), so we create an interval with
-							//one item for each value and we put it in the interval_set.
-							interval_set<int> iset;
-							for(int i = lower(forIndexInterval); i <= upper(forIndexInterval); i++){
-								iset.add(discrete_interval<int>::closed(it->first * i + it->second, it->first * i + it->second));
-							}
-							newEdge.indexInterval = iset;
-						}*/
 						edgeList.push_back(newEdge);
 					}
 				}
@@ -72,11 +53,9 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 					//occurrence of a particular position of the array
 					for(set<AST_Integer>::iterator it = simpleIndex.begin(); it != simpleIndex.end(); it++){
 						EdgeProperties newEdge;
-						//newEdge.genericIndex.first = newEdge.genericIndex.second = 0;
 						newEdge.genericIndex.first = 1;
 						newEdge.genericIndex.second = 0;
 						newEdge.indexInterval.add(discrete_interval<int>::closed(*it, *it));
-						//newEdge.indexInterval = construct < discrete_interval<int> > (*it, *it, interval_bounds::closed());
 						edgeList.push_back(newEdge);
 					}
 				}
@@ -100,7 +79,6 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 			//we calculate the ranges
 			pair<AST_Integer,AST_Integer> ranges = get_for_range(eqFor->forIndexList()->front()->in_exp(), symbolTable);
 			forIndexInterval = discrete_interval<int>::closed(ranges.first, ranges.second);
-			//forIndexInterval = construct < discrete_interval<int> > (ranges.first, ranges.second, interval_bounds::closed());
 			result = check_occurrence(var, insideEq);
 			return result;
 			break;
