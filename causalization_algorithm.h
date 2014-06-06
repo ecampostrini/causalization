@@ -1,5 +1,8 @@
 #include <causalize/causalize2/graph_definition.h>
+#include <boost/icl/interval_set.hpp>
 #include <mmo/mmo_class.h>
+
+using namespace boost::icl;
 
 class CausalizationStrategy{
 	public:
@@ -15,6 +18,7 @@ class CausalizationStrategy{
 		list<Vertex> *equationDescriptors, *unknownDescriptors;
 		vector<CausalizedVar> equations1toN;
 		vector<CausalizedVar> equationsNto1;
-		void causalize1toN(Vertex unknown, Vertex equation, Edge e);
-		void causalizeNto1(Vertex unknown, Vertex equation, Edge e);
+		void causalize1toN(const Vertex &unknown, const Vertex &equation, const Edge &e);
+		void causalizeNto1(const Vertex &unknown, const Vertex &equation, const Edge &e);
+		bool test_intersection(const Edge&, const Edge&);
 };

@@ -5,6 +5,8 @@
 #include <boost/lambda/lambda.hpp>
 #include <boost/icl/discrete_interval.hpp>
 
+#define sz(a) int((a).size())
+
 using namespace std;
 using namespace boost;
 using namespace boost::icl;
@@ -37,28 +39,74 @@ CausalizationStrategy::CausalizationStrategy(CausalizationGraph g){
 	}
 }
 
+bool 
+CausalizationStrategy::test_intersection(const Edge &e1, const Edge &e2){
+
+	if(graph[e1].genericIndex.first > 1 || graph[e2].genericIndex.first > 1){
+		//we transform the first and the last element of each interval
+		//we represent e1 interval as [a,b] and e2 interval as [c,d]
+		int a = first(graph[e1].indexInterval), b = last(graph[e1].indexInterval);
+		int c = first(graph[e2].indexInterval), d = last(graph[e2].indexInterval);
+		DEBUG('g', "e1[%d, %d], e2[%d, %d]\n", a,b,c,d);
+		if(graph[e1].genericIndex.first > 1){
+			a = graph[e1].genericIndex.first * a + graph[e1].genericIndex.second;		
+			b = graph[e1].genericIndex.first * b + graph[e1].genericIndex.second;
+		}
+		if(graph[e2].genericIndex.first > 1){
+			c = graph[e2].genericIndex.first * c + graph[e2].genericIndex.second;
+			d = graph[e2].genericIndex.first * d + graph[e2].genericIndex.second;		
+		}
+		DEBUG('g', "e1[%d, %d], e2[%d, %d]\n", a,b,c,d);
+		//we check if we have an interval intersection between
+		//[a,b] and [c,d]
+		if(c == a || c == b	|| d == a || d == b){
+			//we have a match in some extreme!
+			//remove_edge(e2, graph);
+			return true;
+		}
+		else if((c < a && d > a) || (c > a && b > c)){
+			if(d < b){
+				int d_ = d - graph[e1].genericIndex.second; 
+				if(d_ % graph[e1].genericIndex.first == 0){
+					//remove_edge(e2, graph);		
+					return true;
+				}
+			}else{
+				int b_ = b - graph[e2].genericIndex.second;
+				if(b_ % graph[e2].genericIndex.first == 0){
+					//remove_edge(e2, graph);		
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	return intersects(graph[e1].indexInterval, graph[e2].indexInterval);
+}
+
 void
-CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge currentEdge){
-	assert(boost::icl::size(graph[currentEdge].indexInterval) != 0);
+CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge targetEdge){
+	assert(boost::icl::size(graph[targetEdge].indexInterval) != 0);
 	DEBUG('g', "Removing edge for unknown: %s\n", graph[unknown].variableName.c_str());
 	CausalizationGraph::out_edge_iterator it, end, auxiliaryIter;
 	tie(auxiliaryIter, end) = out_edges(unknown, graph);
 	for(it = auxiliaryIter; it != end; it = auxiliaryIter){
 		auxiliaryIter++;
-		if(current_element(it) == currentEdge){continue;}
-		if(graph[current_element(it)].genericIndex.first > 1 || graph[currentEdge].genericIndex.first > 1){
+		if(current_element(it) == targetEdge){continue;}
+		/*
+		if(graph[current_element(it)].genericIndex.first > 1 || graph[targetEdge].genericIndex.first > 1){
 			//we transform the first and the last element of each interval
-			//we represent [a,b] for targetEdge as [target_first, target_last]
-			//and [a,b] for currentEdge as [current_first, current_last]
+			//we represent targetEdge interval as [a,b]
+			//and currentEdge interval as [c,d]
 			Edge cEdge = current_element(it);
-			int a = first(graph[currentEdge].indexInterval);
-			int b = last(graph[currentEdge].indexInterval);
+			int a = first(graph[targetEdge].indexInterval);
+			int b = last(graph[targetEdge].indexInterval);
 			int c = first(graph[cEdge].indexInterval);
 			int d = last(graph[cEdge].indexInterval);
 			//DEBUG('g', "tEdge [%d, %d], cEdge[%d, %d]\n", a,b,c,d);
-			if(graph[currentEdge].genericIndex.first > 1){
-				a = graph[currentEdge].genericIndex.first * a + graph[currentEdge].genericIndex.second;		
-				b = graph[currentEdge].genericIndex.first * b + graph[currentEdge].genericIndex.second;
+			if(graph[targetEdge].genericIndex.first > 1){
+				a = graph[targetEdge].genericIndex.first * a + graph[targetEdge].genericIndex.second;		
+				b = graph[targetEdge].genericIndex.first * b + graph[targetEdge].genericIndex.second;
 			}
 			if(graph[cEdge].genericIndex.first > 1){
 				c = graph[cEdge].genericIndex.first * c + graph[cEdge].genericIndex.second;
@@ -73,8 +121,8 @@ CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge currentEdge){
 			}
 			else if((c < a && d > a) || (c > a && b > c)){
 				if(d < b){
-					int d_ = d - graph[currentEdge].genericIndex.second; 
-					if(d_ % graph[currentEdge].genericIndex.first == 0){
+					int d_ = d - graph[targetEdge].genericIndex.second; 
+					if(d_ % graph[targetEdge].genericIndex.first == 0){
 						remove_edge(cEdge, graph);		
 					}
 				}else{
@@ -90,14 +138,17 @@ CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge currentEdge){
 			}
 			continue;
 		}
-		if(!intersects(graph[current_element(it)].indexInterval, graph[currentEdge].indexInterval)){continue;}
-		remove_edge(current_element(it), graph);
+		if(!intersects(graph[current_element(it)].indexInterval, graph[targetEdge].indexInterval)){continue;}
+		*/
+		if(test_intersection(targetEdge, current_element(it))){
+			remove_edge(current_element(it), graph);
+		}
 	}
-	remove_edge(currentEdge, graph);
+	remove_edge(targetEdge, graph);
 }
 
 void 
-CausalizationStrategy::causalize1toN(Vertex u, Vertex eq, Edge e){
+CausalizationStrategy::causalize1toN(const Vertex &u, const Vertex &eq, const Edge &e){
 	CausalizedVar c_var;
 	c_var.unknown = graph[u];
 	c_var.equation = graph[eq];
@@ -106,12 +157,12 @@ CausalizationStrategy::causalize1toN(Vertex u, Vertex eq, Edge e){
 }
 
 void 
-CausalizationStrategy::causalizeNto1(Vertex u, Vertex eq, Edge e){
+CausalizationStrategy::causalizeNto1(const Vertex &u, const Vertex &eq, const Edge &e){
 	CausalizedVar c_var;
 	c_var.unknown = graph[u];
 	c_var.equation = graph[eq];
 	c_var.edge = graph[e];
-	equationsNto1.push_back(c_var);		
+	equationsNto1.insert(begin(equationsNto1), c_var);		
 }
 
 void
@@ -147,7 +198,7 @@ CausalizationStrategy::causalize(){
 					causalize1toN(unknown, eq, e);
 					remove_edge_from_array(unknown, e);
 					equationNumber--;
-					unknownNumber -= graph[e].indexInterval.size();
+					unknownNumber -= sz(graph[e].indexInterval);
 					equationDescriptors->erase(iter);
 					graph[unknown].count--;
 					if(graph[unknown].count == 0){
@@ -161,6 +212,7 @@ CausalizationStrategy::causalize(){
 			if(out_degree(eq,graph) == 1){
 				//only one edge, we causalize it
 				Edge e = *out_edges(eq, graph).first;
+				assert(sz(graph[e].indexInterval) == graph[eq].count);
 				Vertex unknown = target(e, graph);
 				if(boost::icl::is_empty(graph[e].indexInterval)){
 					//its a regular variable and we just causalize
@@ -171,58 +223,15 @@ CausalizationStrategy::causalize(){
 					causalize1toN(unknown, eq, e);
 					remove_edge_from_array(unknown, e);
 					equationNumber -= graph[eq].count;
-					unknownNumber -= graph[e].indexInterval.size();
+					unknownNumber -= sz(graph[e].indexInterval);
 					//the array may have more variables
-					graph[unknown].count -= graph[e].indexInterval.size();
+					graph[unknown].count -= sz(graph[e].indexInterval);
 					if(graph[unknown].count == 0){
 						unknownDescriptors->remove(unknown);
 					}
 					equationDescriptors->erase(iter);
 				}
 			}
-			/*
-			else{
-				//if only one of the edges has weight == size of range
-				// then thats the one we are causalizing 
-				CausalizationGraph::out_edge_iterator begin, end, it;
-				Edge targetEdge; 
-				Vertex causalizedUnknown;
-				AST_Integer sameWeight = 0;
-				vector<Edge> toRemove;
-				for(boost::tie(begin, end) = out_edges(eq, graph), it = begin; it != end && sameWeight <= 1; it++){
-					Edge e = *it;
-					Vertex unknown = target(e, graph);
-					//DEBUG('g', "Variable %s, indexInterval size %d\n", graph[unknown].variableName.c_str(), graph[e].indexInterval.size());
-					if(graph[e].indexInterval.size() == (unsigned) graph[eq].count && sameWeight++ == 0){ 
-						targetEdge = e;
-						causalizedUnknown = unknown;
-					}
-					if(e != targetEdge && sameWeight <= 1){
-						DEBUG('g', "toRemove: %s\n", graph[unknown].variableName.c_str());
-						toRemove.push_back(e);		
-					}
-				}
-				if(sameWeight == 1){
-					if(toRemove.empty()){
-						//we have to arrange the equations in an 'executable' order
-						causalize1toN(causalizedUnknown, eq, targetEdge);
-					}
-					else{
-						causalizeNto1(causalizedUnknown, eq, targetEdge);
-					}
-					remove_edge_from_array(causalizedUnknown, targetEdge);
-					equationNumber -= graph[eq].count;
-					unknownNumber -= graph[targetEdge].indexInterval.size();
-					graph[causalizedUnknown].count -= graph[targetEdge].indexInterval.size();
-					if(graph[causalizedUnknown].count == 0)
-						unknownDescriptors->remove(causalizedUnknown);
-					equationDescriptors->erase(iter);
-					for(vector<Edge>::iterator it = toRemove.begin(); it != toRemove.end(); it++){
-						Edge e = *it;
-						remove_edge(e, graph);
-					}
-				}
-			}*/
 		}else{
 			ERROR("CausalizationStrategy::causalize:"
 			      "Equation type not supported\n");		
@@ -270,7 +279,7 @@ CausalizationStrategy::causalize(){
 					remove_out_edge_if(eq, boost::lambda::_1 != e, graph);
 					remove_edge(e, graph);
 					equationNumber -= graph[eq].count;
-					unknownNumber -= graph[e].indexInterval.size();
+					unknownNumber -= sz(graph[e].indexInterval);
 					equationDescriptors->remove(eq);
 				}
 			}
@@ -285,11 +294,12 @@ CausalizationStrategy::causalize(){
 void
 CausalizationStrategy::print(){
 	vector<CausalizedVar>::iterator it;
-	
 	for(it = equations1toN.begin(); it != equations1toN.end(); it++){
-		cout << "(" << it->unknown.variableName <<	", " << it->equation.index << ", " << it->edge.indexInterval << ")" << endl;
+		cout << "(" << it->unknown.variableName <<	", " << it->equation.index << ", " << it->edge.indexInterval << ", "; 
+		cout << it->edge.genericIndex.first << " * i + " << it->edge.genericIndex.second << ")" << endl;
 	}		
 	for(it = equationsNto1.begin(); it != equationsNto1.end(); it++){
-		cout << "(" << it->unknown.variableName <<	", " << it->equation.index << ", " << it->edge.indexInterval << ")" << endl;
+		cout << "(" << it->unknown.variableName <<	", " << it->equation.index << ", " << it->edge.indexInterval << ", ";
+		cout << it->edge.genericIndex.first << " * i + " << it->edge.genericIndex.second << ")" << endl;
 	}
 }
