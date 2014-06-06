@@ -99,5 +99,6 @@ GraphPrinter::printGraph(){
 	stri << "}" << endl;
 	out << stri.str();
 	out.close();
+	cout << "Archivo gafo.dot generado" << endl;
 	return stri.str();
 }
