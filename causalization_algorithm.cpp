@@ -47,7 +47,10 @@ CausalizationStrategy::test_intersection(const Edge &e1, const Edge &e2){
 		//we represent e1 interval as [a,b] and e2 interval as [c,d]
 		int a = first(graph[e1].indexInterval), b = last(graph[e1].indexInterval);
 		int c = first(graph[e2].indexInterval), d = last(graph[e2].indexInterval);
-		DEBUG('g', "e1[%d, %d], e2[%d, %d]\n", a,b,c,d);
+
+		DEBUG('g', "Testing intersection between: [%d, %d](%d, %d), [%d, %d](%d,%d)\n", a,b,graph[e1].genericIndex.first,
+		   graph[e1].genericIndex.second,c,d, graph[e2].genericIndex.first, graph[e2].genericIndex.second);
+		
 		if(graph[e1].genericIndex.first > 1){
 			a = graph[e1].genericIndex.first * a + graph[e1].genericIndex.second;		
 			b = graph[e1].genericIndex.first * b + graph[e1].genericIndex.second;
@@ -56,25 +59,21 @@ CausalizationStrategy::test_intersection(const Edge &e1, const Edge &e2){
 			c = graph[e2].genericIndex.first * c + graph[e2].genericIndex.second;
 			d = graph[e2].genericIndex.first * d + graph[e2].genericIndex.second;		
 		}
-		DEBUG('g', "e1[%d, %d], e2[%d, %d]\n", a,b,c,d);
 		//we check if we have an interval intersection between
 		//[a,b] and [c,d]
 		if(c == a || c == b	|| d == a || d == b){
 			//we have a match in some extreme!
-			//remove_edge(e2, graph);
 			return true;
 		}
 		else if((c < a && d > a) || (c > a && b > c)){
 			if(d < b){
 				int d_ = d - graph[e1].genericIndex.second; 
 				if(d_ % graph[e1].genericIndex.first == 0){
-					//remove_edge(e2, graph);		
 					return true;
 				}
 			}else{
 				int b_ = b - graph[e2].genericIndex.second;
 				if(b_ % graph[e2].genericIndex.first == 0){
-					//remove_edge(e2, graph);		
 					return true;
 				}
 			}
@@ -87,59 +86,12 @@ CausalizationStrategy::test_intersection(const Edge &e1, const Edge &e2){
 void
 CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge targetEdge){
 	assert(boost::icl::size(graph[targetEdge].indexInterval) != 0);
-	DEBUG('g', "Removing edge for unknown: %s\n", graph[unknown].variableName.c_str());
+	//DEBUG('g', "Removing edge for unknown: %s\n", graph[unknown].variableName.c_str());
 	CausalizationGraph::out_edge_iterator it, end, auxiliaryIter;
 	tie(auxiliaryIter, end) = out_edges(unknown, graph);
 	for(it = auxiliaryIter; it != end; it = auxiliaryIter){
 		auxiliaryIter++;
 		if(current_element(it) == targetEdge){continue;}
-		/*
-		if(graph[current_element(it)].genericIndex.first > 1 || graph[targetEdge].genericIndex.first > 1){
-			//we transform the first and the last element of each interval
-			//we represent targetEdge interval as [a,b]
-			//and currentEdge interval as [c,d]
-			Edge cEdge = current_element(it);
-			int a = first(graph[targetEdge].indexInterval);
-			int b = last(graph[targetEdge].indexInterval);
-			int c = first(graph[cEdge].indexInterval);
-			int d = last(graph[cEdge].indexInterval);
-			//DEBUG('g', "tEdge [%d, %d], cEdge[%d, %d]\n", a,b,c,d);
-			if(graph[targetEdge].genericIndex.first > 1){
-				a = graph[targetEdge].genericIndex.first * a + graph[targetEdge].genericIndex.second;		
-				b = graph[targetEdge].genericIndex.first * b + graph[targetEdge].genericIndex.second;
-			}
-			if(graph[cEdge].genericIndex.first > 1){
-				c = graph[cEdge].genericIndex.first * c + graph[cEdge].genericIndex.second;
-				d = graph[cEdge].genericIndex.first * d  + graph[cEdge].genericIndex.second;		
-			}
-			DEBUG('g', "tEdge [%d, %d], cEdge[%d, %d]\n", a,b,c,d);
-			//we check if we have an interval intersection between
-			//[a,b] (target edge) and [c,d] (current edge)
-			if(c == a || c == b	|| d == a || d == b){
-				//we have intersection in some extreme!
-				remove_edge(cEdge, graph);
-			}
-			else if((c < a && d > a) || (c > a && b > c)){
-				if(d < b){
-					int d_ = d - graph[targetEdge].genericIndex.second; 
-					if(d_ % graph[targetEdge].genericIndex.first == 0){
-						remove_edge(cEdge, graph);		
-					}
-				}else{
-					int b_ = b - graph[cEdge].genericIndex.second;
-					if(b_ % graph[cEdge].genericIndex.first == 0){
-						remove_edge(cEdge, graph);		
-					}
-				}
-			}
-			else{
-				//there is no intersection, we jump to the next edge of the array 
-				//continue;
-			}
-			continue;
-		}
-		if(!intersects(graph[current_element(it)].indexInterval, graph[targetEdge].indexInterval)){continue;}
-		*/
 		if(test_intersection(targetEdge, current_element(it))){
 			remove_edge(current_element(it), graph);
 		}
@@ -267,7 +219,7 @@ CausalizationStrategy::causalize(){
 				tie(_it, _end) = out_edges(unknown, graph);
 				while(_it != _end){
 					Edge e2 = *_it;
-					if(e != e2 && intersects(graph[e].indexInterval, graph[e2].indexInterval)){
+					if(e != e2 && test_intersection(e, e2)){
 						break;				
 					}
 					_it++;
