@@ -13,7 +13,7 @@ using namespace boost;
 #define INSERT_TAB depth += TAB_SPACE;
 #define DELETE_TAB depth -= TAB_SPACE;
 
-GraphPrinter::GraphPrinter(CausalizationGraph g)
+GraphPrinter::GraphPrinter(const CausalizationGraph &g)
 {
 	graph = g;
 	CausalizationGraph::vertex_iterator vi, vi_end;
@@ -91,7 +91,8 @@ GraphPrinter::printGraph(){
 				Vertex unknown = target(*ei, graph);
 				MAKE_SPACE;
 				stri << graph[*eq_it].index << " -- " << graph[unknown].variableName;
-				stri << " [label = \""<< graph[*ei].indexInterval  << "\"];" << endl;
+				stri << " [label = \""<< graph[*ei].indexInterval ;
+				stri << "Index: " << graph[*ei].genericIndex.first << " * i + " << graph[*ei].genericIndex.second  << "\"];" << endl;
 			}
 		}
 	DELETE_TAB

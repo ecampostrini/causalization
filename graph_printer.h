@@ -3,7 +3,7 @@
 
 class GraphPrinter{
 	public:
-		GraphPrinter(CausalizationGraph g);
+		GraphPrinter(const CausalizationGraph &g);
 		string printGraph();
 	private:
 		CausalizationGraph graph;
