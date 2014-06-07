@@ -201,14 +201,30 @@ Occurrence_checker::foldTraverseElement(AST_Expression exp){
 			break;
 		}
 		case EXPDERIVATIVE:{
-			if(variable.isState){
+			//if(variable.isState){
 				bool result = false;
 				AST_Expression_Derivative exp_der = exp->getAsDerivative();
-				ERROR_UNLESS(exp_der->arguments()->size() > 1, "Derivatives can have only one argument\n");
-				ERROR_UNLESS(exp_der->arguments()->front()->expressionType() != EXPCOMPREF, "Only simple variable derivatives are allowed for the moment\n");
-				result = foldTraverseElement(exp_der->arguments()->front());
-				return result;
-			}
+				ERROR_UNLESS(exp_der->arguments()->size() == 1, "Derivatives can have only one argument\n");
+				ERROR_UNLESS(exp_der->arguments()->front()->expressionType() == EXPCOMPREF, "Only simple variable derivatives are allowed for the moment\n");
+				AST_Expression_ComponentReference exp_cref = exp_der->arguments()->front()->getAsComponentReference();
+				if(exp_cref->names()->front()->compare(variable.variableName)){break;}
+				if(exp_cref->indexes()->size() > 1 || exp_cref->indexes()->front()->size() > 1){
+					ERROR("Occurrence_checker::foldTraverseElement:\n"
+							"Expression : %s\n"
+							"For the momento just variables of the form 'a' or a[index]\n", 
+							exp_cref->print().c_str());
+				}
+				if(variable.count != 0){
+					//if its an array
+					arrayOccurrence(exp_cref);
+				}else{
+					//if its a simple var we don't care in what kind of equation it
+					// appears
+				}
+				//result = foldTraverseElement(exp_der->arguments()->front());
+				DEBUG('g', "Variable %s %s ocurre en la ecuacion\n", variable.variableName.c_str(), (result) ? "si" : "no");
+				return true;
+			//}
 			break;
 		}
 		case EXPCALL:{
