@@ -11,7 +11,7 @@ using namespace std;
 using namespace boost;
 using namespace boost::icl;
 
-CausalizationStrategy::CausalizationStrategy(CausalizationGraph g){
+CausalizationStrategy2::CausalizationStrategy2(CausalizationGraph g){
 	graph = g;
 	equationDescriptors = new list<Vertex>();
 	unknownDescriptors = new list<Vertex>();	
@@ -40,7 +40,7 @@ CausalizationStrategy::CausalizationStrategy(CausalizationGraph g){
 }
 
 bool 
-CausalizationStrategy::test_intersection(const Edge &e1, const Edge &e2){
+CausalizationStrategy2::test_intersection(const Edge &e1, const Edge &e2){
 
 	if(graph[e1].genericIndex.first > 1 || graph[e2].genericIndex.first > 1){
 		//we transform the first and the last element of each interval
@@ -84,7 +84,7 @@ CausalizationStrategy::test_intersection(const Edge &e1, const Edge &e2){
 }
 
 void
-CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge targetEdge){
+CausalizationStrategy2::remove_edge_from_array(Vertex unknown, Edge targetEdge){
 	assert(boost::icl::size(graph[targetEdge].indexInterval) != 0);
 	//DEBUG('g', "Removing edge for unknown: %s\n", graph[unknown].variableName.c_str());
 	CausalizationGraph::out_edge_iterator it, end, auxiliaryIter;
@@ -100,7 +100,7 @@ CausalizationStrategy::remove_edge_from_array(Vertex unknown, Edge targetEdge){
 }
 
 void 
-CausalizationStrategy::causalize1toN(const Vertex &u, const Vertex &eq, const Edge &e){
+CausalizationStrategy2::causalize1toN(const Vertex &u, const Vertex &eq, const Edge &e){
 	CausalizedVar c_var;
 	c_var.unknown = graph[u];
 	c_var.equation = graph[eq];
@@ -109,7 +109,7 @@ CausalizationStrategy::causalize1toN(const Vertex &u, const Vertex &eq, const Ed
 }
 
 void 
-CausalizationStrategy::causalizeNto1(const Vertex &u, const Vertex &eq, const Edge &e){
+CausalizationStrategy2::causalizeNto1(const Vertex &u, const Vertex &eq, const Edge &e){
 	CausalizedVar c_var;
 	c_var.unknown = graph[u];
 	c_var.equation = graph[eq];
@@ -117,10 +117,10 @@ CausalizationStrategy::causalizeNto1(const Vertex &u, const Vertex &eq, const Ed
 	equationsNto1.insert(begin(equationsNto1), c_var);		
 }
 
-void
-CausalizationStrategy::causalize(){	
+bool
+CausalizationStrategy2::causalize(){	
 	assert(equationNumber == unknownNumber);
-	if(equationDescriptors->empty()) return;
+	if(equationDescriptors->empty()) return true;
 	
 	list<Vertex>::size_type numAcausalEqs = equationDescriptors->size();
 	list<Vertex>::iterator iter, auxiliaryIter;
@@ -185,7 +185,7 @@ CausalizationStrategy::causalize(){
 				}
 			}
 		}else{
-			ERROR("CausalizationStrategy::causalize:"
+			ERROR("CausalizationStrategy2::causalize:"
 			      "Equation type not supported\n");		
 		}
 	}
@@ -238,13 +238,17 @@ CausalizationStrategy::causalize(){
 		}
 	}
 	if(numAcausalEqs == equationDescriptors->size()){
-		ERROR("Loop detected! We don't handle loops yet!\n");
+		//we have a LOOP or a FOR equation that we don't 
+		//handle at least yet, so we resort to the previous
+		//algorithm
+		return false;
+		//ERROR("Loop detected! We don't handle loops yet!\n");
 	}
 	causalize();
 }
 
 void
-CausalizationStrategy::print(){
+CausalizationStrategy2::print(){
 	vector<CausalizedVar>::iterator it;
 	for(it = equations1toN.begin(); it != equations1toN.end(); it++){
 		cout << "(" << it->unknown.variableName <<	", " << it->equation.index << ", " << it->edge.indexInterval << ", "; 

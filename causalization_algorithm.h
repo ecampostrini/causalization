@@ -4,10 +4,10 @@
 
 using namespace boost::icl;
 
-class CausalizationStrategy{
+class CausalizationStrategy2{
 	public:
-		CausalizationStrategy(CausalizationGraph g);			
-		void causalize();
+		CausalizationStrategy2(CausalizationGraph g);			
+		bool causalize();
 		MMO_EquationList getEquations();
 		void print();
 	private:

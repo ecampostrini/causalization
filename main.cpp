@@ -27,6 +27,7 @@
 #include <mmo/mmo_class.h>
 #include <ast/class.h>
 #include <util/symbol_table.h>
+#include <causalize/causalization_strategy.h>
 
 /*this includes are for a quick test*/
 #include <causalize/causalize2/graph_builder.h>
@@ -79,10 +80,21 @@ int main(int argc, char** argv){
 	GraphPrinter gp(g);
 	gp.printGraph();
 
-	CausalizationStrategy *cs = new CausalizationStrategy(g);
-	cs->causalize();
-	cout << "Resultado de la causalizacion:" << endl;
-	cs->print();
-
+	CausalizationStrategy2 *cs = new CausalizationStrategy2(g);
+	if(cs->causalize()){
+		cout << "Resultado de la causalizacion:" << endl;
+		cs->print();
+	}else{
+		//si no anduvo, probamos con la estrategia clasica
+		CausalizationStrategy *cs_clasica = new CausalizationStrategy(mmo_class);
+		AST_ClassList cl = newAST_ClassList();
+		cs_clasica->causalize(mmo_class->name(), cl);
+  		DEBUG('c', "Causalized Equations:\n");
+  		MMO_EquationList causalEqs = mmo_class->getEquations();
+  		MMO_EquationListIterator causalEqsIter;
+  		foreach(causalEqsIter, causalEqs) {
+    		DEBUG('c', "%s", current_element(causalEqsIter)->print().c_str());
+  		}
+	}
 	return 0;
 }
