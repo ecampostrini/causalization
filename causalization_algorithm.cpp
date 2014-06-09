@@ -244,18 +244,28 @@ CausalizationStrategy2::causalize(){
 		return false;
 		//ERROR("Loop detected! We don't handle loops yet!\n");
 	}
-	causalize();
+	return causalize();
 }
 
 void
 CausalizationStrategy2::print(){
 	vector<CausalizedVar>::iterator it;
 	for(it = equations1toN.begin(); it != equations1toN.end(); it++){
-		cout << "(" << it->unknown.variableName <<	", " << it->equation.index << ", " << it->edge.indexInterval << ", "; 
+		string name;
+		if(it->unknown.isState)
+			name = "der(" + it->unknown.variableName + ")";
+		else
+			name = it->unknown.variableName;
+		cout << "(" << name <<	", " << it->equation.index << ", " << it->edge.indexInterval << ", "; 
 		cout << it->edge.genericIndex.first << " * i + " << it->edge.genericIndex.second << ")" << endl;
 	}		
 	for(it = equationsNto1.begin(); it != equationsNto1.end(); it++){
-		cout << "(" << it->unknown.variableName <<	", " << it->equation.index << ", " << it->edge.indexInterval << ", ";
+		string name;
+		if(it->unknown.isState)
+			name = "der(" + it->unknown.variableName + ")";
+		else
+			name = it->unknown.variableName;
+		cout << "(" << name <<	", " << it->equation.index << ", " << it->edge.indexInterval << ", ";
 		cout << it->edge.genericIndex.first << " * i + " << it->edge.genericIndex.second << ")" << endl;
 	}
 }
