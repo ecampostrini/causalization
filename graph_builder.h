@@ -7,6 +7,7 @@
 */
 #include <mmo/mmo_class.h>
 #include <causalize/causalize2/graph_definition.h>
+#include <causalize/state_variables_finder.h>
 
 
 class GraphBuilder{
@@ -32,5 +33,6 @@ class ReducedGraphBuilder:public GraphBuilder{
 		VarSymbolTable symbolTable;
 		list<Vertex>* equationDescriptorList;
 		list<Vertex>* unknownDescriptorList;
+		StateVariablesFinder *state_finder;	
 };
 

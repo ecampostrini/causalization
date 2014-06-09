@@ -190,6 +190,10 @@ Occurrence_checker::foldTraverseElement(AST_Expression exp){
 						"For the momento just variables of the form 'a' or a[index]\n", 
 						exp_cref->print().c_str());
 			}
+			if(variable.isState){
+				ERROR("Occurrence_checker::foldTraverseElement: Error in expression %s. "
+					  "Variable '%s' can only appear as a State variable\n", exp_cref->print().c_str(),exp_cref->names()->front()->c_str());		
+			}
 			if(variable.count != 0){
 				//if its an array
 				arrayOccurrence(exp_cref);

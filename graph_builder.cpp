@@ -21,6 +21,7 @@ using namespace boost::icl;
 
 ReducedGraphBuilder::ReducedGraphBuilder(MMO_Class mmo_cl):GraphBuilder(mmo_cl){
 	symbolTable = mmo_cl->getVarSymbolTable();
+	state_finder = new StateVariablesFinder(mmo_cl);
 }
 
 ReducedGraphBuilder::~ReducedGraphBuilder(){
@@ -129,6 +130,7 @@ ReducedGraphBuilder::makeGraph(){
 
 	/* Create nodes for the unkowns: We iterate through the VarSymbolTable 
 	 * and create one vertex per unknown */
+	state_finder->findStateVariables();
 	for(int i = 0; i < symbolTable->count(); i++){
 		static AST_Integer index = 0;
 		VarInfo	varInfo = symbolTable->varInfo(i);
@@ -141,8 +143,10 @@ ReducedGraphBuilder::makeGraph(){
 			vp->variableName = symbolTable->key(i);
 			if(varType->getType() == TYREAL){
 				if(varInfo->isState()){
+					DEBUG('g', "Var %s como derivada\n", vp->variableName.c_str());
 					vp->isState = true;
 				}else{
+					DEBUG('g', "Var %s como no-derivada\n", vp->variableName.c_str());
 					vp->isState = false;
 				}
 				vp->count = 0;
@@ -155,8 +159,10 @@ ReducedGraphBuilder::makeGraph(){
 				}
 				if(varInfo->isState()){
 					// que hago acaaa!???		
+					DEBUG('g', "Array %s como derivada\n", vp->variableName.c_str());
 					vp->isState = true;
 				}else{
+					DEBUG('g', "Array %s como no-derivada\n", vp->variableName.c_str());
 					vp->isState = false;		
 				}
 				vp->count = getDimension(array_type->dimension());
