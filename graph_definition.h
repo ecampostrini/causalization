@@ -1,13 +1,14 @@
 #include <mmo/mmo_class.h>
 #include <ast/ast_types.h>
 
+#include <boost/config.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/icl/interval_set.hpp>
 //#include <boost/icl/discrete_interval.hpp>
 
 
-#ifndef GRAPH_DEFINITION_2
-#define GRAPH_DEFINITION_2
+#ifndef GRAPH_DEFINITION_
+#define GRAPH_DEFINITION_
 
 
 /* E: equations, U: unknowns*/
@@ -22,6 +23,10 @@ struct VertexProperties{
 	AST_Boolean isState;
 	AST_Integer count; //size of the array or number of equations
 	AST_Integer index; //for debug purposes
+	//these fields are for compatibility with the previous
+	//algorithm
+	MMO_EquationList  eqs;
+	AST_ExpressionList unknowns;
 };
 
 /*
@@ -44,11 +49,6 @@ struct CausalizedVar{
 	VertexProperties unknown;
 	VertexProperties equation;
 	EdgeProperties edge;
-	//string variableName;
-	//AST_Boolean isState;
-	//AST_Integer index; //0: normal variable, != 0: array
-	//boost::icl::discrete_interval<int> indexRange;
-	//MMO_Equation equation;
 };
 
 /*Classes for a potential redefinition of the Bundled properties*/
