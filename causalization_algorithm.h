@@ -21,4 +21,5 @@ class CausalizationStrategy2{
 		void causalize1toN(const Vertex &unknown, const Vertex &equation, const Edge &e);
 		void causalizeNto1(const Vertex &unknown, const Vertex &equation, const Edge &e);
 		bool test_intersection(const Edge&, const Edge&);
+		string getName(const VertexProperties&, const EdgeProperties&);
 };

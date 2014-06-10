@@ -4,6 +4,9 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/lambda/lambda.hpp>
 #include <boost/icl/discrete_interval.hpp>
+//#include <iostream>
+//#include <string>
+#include <sstream>
 
 #define sz(a) int((a).size())
 
@@ -247,25 +250,45 @@ CausalizationStrategy2::causalize(){
 	return causalize();
 }
 
+string 
+CausalizationStrategy2::getName(const VertexProperties &uk, const EdgeProperties &ed){
+	stringstream name;
+
+	if(ed.indexInterval.size() == 0){
+		name << uk.variableName;		
+	}else if(ed.indexInterval.size() == 1){
+		name << uk.variableName << "[" << ed.genericIndex.first * first(ed.indexInterval) +  ed.genericIndex.second << "]";
+	}else{
+		name << uk.variableName << "[" << ed.genericIndex.first << "*i + " << ed.genericIndex.second << "]";		
+	}
+
+	if(uk.isState)
+		return "der(" + name.str() + ")";
+
+	return name.str();	
+}
+
 void
 CausalizationStrategy2::print(){
 	vector<CausalizedVar>::iterator it;
 	for(it = equations1toN.begin(); it != equations1toN.end(); it++){
 		string name;
-		if(it->unknown.isState)
-			name = "der(" + it->unknown.variableName + ")";
-		else
-			name = it->unknown.variableName;
-		cout << "(" << name <<	", " << it->equation.index << ", " << it->edge.indexInterval << ", "; 
-		cout << it->edge.genericIndex.first << " * i + " << it->edge.genericIndex.second << ")" << endl;
+		name = getName(it->unknown, it->edge);
+		if(it->edge.indexInterval.size() > 1){
+			interval_set<int>::iterator isi = it->edge.indexInterval.begin();
+			cout << "(" << name <<	"," << *isi  << "," << it->equation.index << ")" << endl; 
+		}else{
+			cout << "(" << name << "," << it->equation.index << ")" << endl;		
+		}
 	}		
 	for(it = equationsNto1.begin(); it != equationsNto1.end(); it++){
 		string name;
-		if(it->unknown.isState)
-			name = "der(" + it->unknown.variableName + ")";
-		else
-			name = it->unknown.variableName;
-		cout << "(" << name <<	", " << it->equation.index << ", " << it->edge.indexInterval << ", ";
-		cout << it->edge.genericIndex.first << " * i + " << it->edge.genericIndex.second << ")" << endl;
+		name = getName(it->unknown, it->edge);
+		if(it->edge.indexInterval.size() > 1){
+			interval_set<int>::iterator isi = it->edge.indexInterval.begin();
+			cout << "(" << name <<	"," << *isi << "," << it->equation.index << ")" << endl; 
+		}else{
+			cout << "(" << name << ", " << it->equation.index << ")" << endl;		
+		}
 	}
 }
