@@ -143,10 +143,8 @@ ReducedGraphBuilder::makeGraph(){
 			vp->variableName = symbolTable->key(i);
 			if(varType->getType() == TYREAL){
 				if(varInfo->isState()){
-					DEBUG('g', "Var %s como derivada\n", vp->variableName.c_str());
 					vp->isState = true;
 				}else{
-					DEBUG('g', "Var %s como no-derivada\n", vp->variableName.c_str());
 					vp->isState = false;
 				}
 				vp->count = 0;
@@ -159,10 +157,8 @@ ReducedGraphBuilder::makeGraph(){
 				}
 				if(varInfo->isState()){
 					// que hago acaaa!???		
-					DEBUG('g', "Array %s como derivada\n", vp->variableName.c_str());
 					vp->isState = true;
 				}else{
-					DEBUG('g', "Array %s como no-derivada\n", vp->variableName.c_str());
 					vp->isState = false;		
 				}
 				vp->count = getDimension(array_type->dimension());
@@ -180,19 +176,25 @@ ReducedGraphBuilder::makeGraph(){
 	
 	#ifdef ENABLE_DEBUG_MSG
 	if(debugIsEnabled('g')){
-		DEBUG_MSG("Equations");
+		DEBUG_MSG("Ecuaciones");
 		foreach(eqsIt, equationDescriptorList){
 			DEBUG_MSG(graph[current_element(eqsIt)].index << ": " << graph[current_element(eqsIt)].equation->print()) ;
 		}
-		DEBUG_MSG("Unknowns");
+		DEBUG_MSG("Incognitas");
 		foreach(unIt, unknownDescriptorList){
-			DEBUG_MSG(graph[current_element(unIt)].index << ": " << graph[current_element(unIt)].variableName) ;
+			string var_name;
+			if(graph[current_element(unIt)].isState){
+				var_name = "der(" + graph[current_element(unIt)].variableName + ")";
+			}else{
+				var_name = graph[current_element(unIt)].variableName;		
+			}
+			DEBUG_MSG(graph[current_element(unIt)].index << ": " << var_name) ;
 		}
 	}
 	#endif
 	
 	Occurrence_checker *oc = new Occurrence_checker(symbolTable);
-	DEBUG('g', "Adjacency list as (equation_index, unknown_index, number_of_edges) {genericIndex of each edge}:\n");
+	//DEBUG('g', "Adjacency list as (equation_index, unknown_index, number_of_edges) {genericIndex of each edge}:\n");
 	foreach(eqsIt, equationDescriptorList){
 		foreach(unIt,unknownDescriptorList){
 			if(oc->check_occurrence(graph[current_element(unIt)], graph[current_element(eqsIt)].equation)){
@@ -205,8 +207,8 @@ ReducedGraphBuilder::makeGraph(){
 						ERROR("makeGraph: Error while adding the edges to the graph\n");
 					}
 				}
-				DEBUG('g', "(%d, %d, %d), ", graph[current_element(eqsIt)].index ,graph[current_element(unIt)].index,edgeList.size());
-				#ifdef ENABLE_DEBUG_MSG
+				//DEBUG('g', "(%d, %d, %d), ", graph[current_element(eqsIt)].index ,graph[current_element(unIt)].index,edgeList.size());
+				/*#ifdef ENABLE_DEBUG_MSG
 				graph_traits<CausalizationGraph>::out_edge_iterator begin, end;			
 				stringstream stri;
 				tie(begin, end) = out_edges(current_element(unIt), graph);
@@ -230,6 +232,7 @@ ReducedGraphBuilder::makeGraph(){
 				stri << "}";
 				cout << stri.str() << endl;
 				#endif
+				*/
 			}
 		}		
 	}

@@ -6,8 +6,10 @@
 #include <sstream>
 //#include <boost/graph/graphviz.hpp>
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/icl/interval_set.hpp>
 
 using namespace boost;
+using namespace boost::icl;
 #define MAKE_SPACE for(int __i=0; __i<depth; __i++) stri << " ";
 #define TAB_SPACE 2
 #define INSERT_TAB depth += TAB_SPACE;
@@ -70,6 +72,11 @@ GraphPrinter::printGraph(){
 			for(list<Vertex>::iterator it=unknownDescriptors.begin(); it!=unknownDescriptors.end(); it++){
 				list<Vertex>::iterator aux = it;
 				aux++;
+				//if(graph[*it].isState){
+				//	stri << "der(" << graph[*it].variableName << ")";
+				//}else{
+				//	stri << graph[*it].variableName;		
+				//}
 				stri << graph[*it].variableName;
 				if((aux) != unknownDescriptors.end()){
 					stri << " -- ";		
@@ -90,9 +97,23 @@ GraphPrinter::printGraph(){
 			for(tie(ei, ei_end) = out_edges(*eq_it, graph); ei != ei_end; ei++){
 				Vertex unknown = target(*ei, graph);
 				MAKE_SPACE;
-				stri << graph[*eq_it].index << " -- " << graph[unknown].variableName;
-				stri << " [label = \""<< graph[*ei].indexInterval ;
-				stri << "Index: " << graph[*ei].genericIndex.first << " * i + " << graph[*ei].genericIndex.second  << "\"];" << endl;
+				string name;
+				//if(graph[unknown].isState){
+				//	name = "der(" + graph[unknown].variableName + ")";		
+				//}else{
+				//	name = graph[unknown].variableName;
+				//}
+				name = graph[unknown].variableName;
+				stri << graph[*eq_it].index << " -- " << name;
+				if(graph[*ei].indexInterval.size() == 1){
+					stri << "[label = \"[" << graph[*ei].genericIndex.first * first(graph[*ei].indexInterval) + graph[*ei].genericIndex.second  << "]\"]";
+				}
+				else if (graph[*ei].indexInterval.size() > 1){
+					interval_set<int>::iterator isi = graph[*ei].indexInterval.begin();
+					stri << " [label = \""<< *isi ;
+					stri << ", " << graph[*ei].genericIndex.first << " * i + " << graph[*ei].genericIndex.second  << "\"]";
+				}
+				stri << ";" << endl;
 			}
 		}
 	DELETE_TAB

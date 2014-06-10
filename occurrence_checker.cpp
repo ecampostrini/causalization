@@ -206,7 +206,7 @@ Occurrence_checker::foldTraverseElement(AST_Expression exp){
 		}
 		case EXPDERIVATIVE:{
 			//if(variable.isState){
-				bool result = false;
+				//bool result = false;
 				AST_Expression_Derivative exp_der = exp->getAsDerivative();
 				ERROR_UNLESS(exp_der->arguments()->size() == 1, "Derivatives can have only one argument\n");
 				ERROR_UNLESS(exp_der->arguments()->front()->expressionType() == EXPCOMPREF, "Only simple variable derivatives are allowed for the moment\n");
@@ -226,7 +226,6 @@ Occurrence_checker::foldTraverseElement(AST_Expression exp){
 					// appears
 				}
 				//result = foldTraverseElement(exp_der->arguments()->front());
-				DEBUG('g', "Variable %s %s ocurre en la ecuacion\n", variable.variableName.c_str(), (result) ? "si" : "no");
 				return true;
 			//}
 			break;
