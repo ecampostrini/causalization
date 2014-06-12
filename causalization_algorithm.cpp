@@ -1,10 +1,11 @@
 #include <causalize/causalize2/causalization_algorithm.h>
 #include <causalize/causalize2/graph_definition.h>
-#include <causalize/causalize2/graph_printer.h>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/lambda/lambda.hpp>
 #include <boost/icl/discrete_interval.hpp>
+//#include <iostream>
+//#include <string>
 #include <sstream>
 
 #define sz(a) int((a).size())
@@ -50,8 +51,8 @@ CausalizationStrategy2::test_intersection(const Edge &e1, const Edge &e2){
 		int a = first(graph[e1].indexInterval), b = last(graph[e1].indexInterval);
 		int c = first(graph[e2].indexInterval), d = last(graph[e2].indexInterval);
 
-		//DEBUG('g', "Testing intersection between: [%d, %d](%d, %d), [%d, %d](%d,%d)\n", a,b,graph[e1].genericIndex.first,
-		//  graph[e1].genericIndex.second,c,d, graph[e2].genericIndex.first, graph[e2].genericIndex.second);
+		DEBUG('g', "Testing intersection between: [%d, %d](%d, %d), [%d, %d](%d,%d)\n", a,b,graph[e1].genericIndex.first,
+		   graph[e1].genericIndex.second,c,d, graph[e2].genericIndex.first, graph[e2].genericIndex.second);
 		
 		if(graph[e1].genericIndex.first > 1){
 			a = graph[e1].genericIndex.first * a + graph[e1].genericIndex.second;		
@@ -94,11 +95,6 @@ CausalizationStrategy2::remove_edge_from_array(Vertex unknown, Edge targetEdge){
 	for(it = auxiliaryIter; it != end; it = auxiliaryIter){
 		auxiliaryIter++;
 		if(current_element(it) == targetEdge){continue;}
-		cout << "debug[" << endl;
-		Vertex eq = target(*it, graph);
-		cout << "(remove_edge_from_array)Testeando interseccion de " << graph[unknown].variableName << endl;
-		cout << "con ecuacion " << graph[eq].index << endl;
-		cout << "]debug" << endl;
 		if(test_intersection(targetEdge, current_element(it))){
 			remove_edge(current_element(it), graph);
 		}
@@ -202,36 +198,19 @@ CausalizationStrategy2::causalize(){
 	for(iter = auxiliaryIter; iter != unknownDescriptors->end(); iter = auxiliaryIter){
 		auxiliaryIter++;
 		Vertex unknown = current_element(iter);
-		cout << "debug[" ;
-		//para debuggeo: crea archivo grafo.dot 
-		GraphPrinter gp(graph);
-		gp.printGraph();
-		//ERROR_UNLESS(out_degree(unknown, graph) != 0, 
-		ERROR_UNLESS(graph[unknown].degree != 0, 
+		ERROR_UNLESS(out_degree(unknown, graph) != 0, 
 			"Problem is singular, not supported yet\n");
-		//if(out_degree(unknown, graph) == 1){
-		if(graph[unknown].degree == 1){
-			Edge e = *out_edges(unknown, graph).first;
+		if(out_degree(unknown, graph) == 1){
+			Edge e = *out_edges(unknown, graph).first;					
 			Vertex eq = target(e, graph);
 			causalizeNto1(unknown, eq, e);
-			//remove_out_edge_if(eq, boost::lambda::_1 != e, graph);
-			CausalizationGraph::out_edge_iterator _it, _end;
-			tie(_it, _end) = out_edges(eq, graph);
-			while(_it != _end){
-				if(*_it == e) continue;
-				graph[*_it].is_valid = false;
-				graph[eq].degree--;
-				_it++;
-			}
-			//remove_edge(e, graph);
-			graph[e].is_valid = false;
-			graph[unknown].degree--;
+			remove_out_edge_if(eq, boost::lambda::_1 != e, graph);
+			remove_edge(e, graph);
 			equationNumber -= graph[eq].count;
 			unknownNumber -= (graph[unknown].count == 0) ? 1 : graph[unknown].count;
 			unknownDescriptors->erase(iter);
 			equationDescriptors->remove(eq);
-		}/*
-		else if (graph[unknown].count != 0){
+		}else if (graph[unknown].count != 0){
 			//we make sure we have an array variable
 			CausalizationGraph::out_edge_iterator it, end, auxiliaryIter2;
 			tie(auxiliaryIter2, end) = out_edges(unknown, graph);
@@ -239,66 +218,39 @@ CausalizationStrategy2::causalize(){
 				//we check if the indexes of the edge don't appear in other equations
 				auxiliaryIter2++;
 				Edge e = *it;
-				if(!graph[e].is_valid) continue;
 				CausalizationGraph::out_edge_iterator _it, _end;
 				tie(_it, _end) = out_edges(unknown, graph);
 				while(_it != _end){
 					Edge e2 = *_it;
-					//DEBUG
-					if(e != e2){
-						Vertex eq1 = target(e, graph);
-						Vertex eq2 = target(e2, graph);
-						cout << "(algorithm)Testeando interseccion de " << graph[unknown].variableName << endl;
-						cout << "Ecuacion nro " << graph[eq1].index ;
-						cout << ", y " << graph[eq2].index;
-						cout << ", desde " << graph[e].indexInterval;
-						cout << ", hasta " << graph[e2].indexInterval << endl;
-					}
-					//END DEBUG
-					if(!graph[e2].is_valid){
-						_it++;
-						continue;
-					}
-					if(e != e2 && test_intersection(e, e2)){
+					if(e != e2 && (target(e, graph) == target(e2, graph) || test_intersection(e, e2))){
+					//if(e != e2 && test_intersection(e, e2)){
 						break;				
 					}
 					_it++;
 				}
+				if(e != *it && target(e,graph) == target(*it, graph)){
+					Vertex eq = target(e, graph);
+					cout << "Ejes paralelos entre " << graph[unknown].variableName << " y " << graph[eq].index;
+				}
 				if(_it == _end){
 					//there is no intersection, we causalize it
 					Vertex eq = target(e, graph);
-					cout << "por remover " << graph[e].indexInterval << ", " << graph[e].genericIndex.second << "de la ecuacion " << graph[eq].index << endl;
 					causalizeNto1(unknown, eq, e);
-					//remove_out_edge_if(eq, boost::lambda::_1 != e, graph);
-					CausalizationGraph::out_edge_iterator _it, _end;
-					tie(_it, _end) = out_edges(eq, graph);
-					while(_it != _end){
-						if(*_it == e){
-							_it++;
-							continue;
-						}
-						graph[*_it].is_valid = false;
-						graph[eq].degree--;
-						_it++;
-					}
-					//remove_edge(e, graph);
-					graph[e].is_valid = false;
-					graph[unknown].degree--;
+					remove_out_edge_if(eq, boost::lambda::_1 != e, graph);
+					remove_edge(e, graph);
 					equationNumber -= graph[eq].count;
 					unknownNumber -= sz(graph[e].indexInterval);
 					equationDescriptors->remove(eq);
 				}
 			}
-		}*/
-		cout << "]debug" << endl;
-
+		}
 	}
 	if(numAcausalEqs == equationDescriptors->size()){
 		//we have a LOOP or a FOR equation that we don't 
 		//handle at least yet, so we resort to the previous
 		//algorithm
-		return false;
-		//ERROR("Loop detected! We don't handle loops yet!\n");
+		//return false;
+		ERROR("Loop detected! We don't handle loops yet!\n");
 	}
 	return causalize();
 }
