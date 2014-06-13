@@ -124,7 +124,6 @@ ReducedGraphBuilder::makeGraph(){
 				vp->count = 1;
 		}
 		vp->index = index++;
-		vp->degree = 0;
 		Vertex eqDescriptor = add_vertex(*vp, graph);
 		equationDescriptorList->push_back(eqDescriptor);
 	}
@@ -166,7 +165,6 @@ ReducedGraphBuilder::makeGraph(){
 			}
 			else{ERROR("ReducedGraphBuilder::makeGraph A variable shouldn't have the type %s at this point. Compiler's mistake.\n", varType->print().c_str());}
 			vp->index = index++;
-			vp->degree = 0;
 			Vertex unknownDescriptor = add_vertex(*vp, graph);
 			unknownDescriptorList->push_back(unknownDescriptor);
 		}
@@ -201,8 +199,6 @@ ReducedGraphBuilder::makeGraph(){
 		foreach(unIt,unknownDescriptorList){
 			if(oc->check_occurrence(graph[current_element(unIt)], graph[current_element(eqsIt)].equation)){
 				list<EdgeProperties> edgeList = oc->getOccurrenceIndexes();
-				graph[current_element(unIt)].degree += edgeList.size();
-				graph[current_element(eqsIt)].degree += edgeList.size();
 				for(list<EdgeProperties>::iterator edgeIt = edgeList.begin(); edgeIt != edgeList.end(); edgeIt++){
 					Edge descriptor;
 					bool result;

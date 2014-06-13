@@ -37,7 +37,6 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 				EdgeProperties newEdge;
 				newEdge.genericIndex.first = newEdge.genericIndex.second = 0;
 				newEdge.indexInterval.add(discrete_interval<int>::open(0, 0));
-				newEdge.is_valid = true;
 				edgeList.push_back(newEdge);
 			}else{
 				//its an array
@@ -45,10 +44,8 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 					//occurrence inside a FOR
 					for(set< pair<AST_Integer, AST_Integer> >::iterator it = genericIndexSet.begin(); it != genericIndexSet.end(); it++){
 						EdgeProperties newEdge;
-						cout << "Generic Index agregado: " << it->first << ", " << it->second << endl;
 						newEdge.genericIndex = *it;
 						newEdge.indexInterval.add(forIndexInterval);
-						newEdge.is_valid = true;
 						edgeList.push_back(newEdge);
 					}
 				}
@@ -59,7 +56,6 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 						newEdge.genericIndex.first = 1;
 						newEdge.genericIndex.second = 0;
 						newEdge.indexInterval.add(discrete_interval<int>::closed(*it, *it));
-						newEdge.is_valid = true;
 						edgeList.push_back(newEdge);
 					}
 				}

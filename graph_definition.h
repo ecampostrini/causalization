@@ -7,8 +7,8 @@
 //#include <boost/icl/discrete_interval.hpp>
 
 
-#ifndef GRAPH_DEFINITION_2
-#define GRAPH_DEFINITION_2
+#ifndef GRAPH_DEFINITION_
+#define GRAPH_DEFINITION_
 
 
 /* E: equations, U: unknowns*/
@@ -22,7 +22,6 @@ struct VertexProperties{
 	string variableName;
 	AST_Boolean isState;
 	AST_Integer count; //size of the array or number of equations
-	AST_Integer degree;
 	AST_Integer index; //for debug purposes
 	//these fields are for compatibility with the previous
 	//algorithm
@@ -39,7 +38,6 @@ struct VertexProperties{
 struct EdgeProperties{
 	pair<AST_Integer, AST_Integer> genericIndex;
 	boost::icl::interval_set<int> indexInterval;
-	bool is_valid;
 };
 
 typedef boost::adjacency_list<boost::listS, boost::listS,
