@@ -28,6 +28,7 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 			edgeList.clear();
 			genericIndexSet.clear();
 			simpleIndex.clear();
+			all_indexes = false;
 			AST_Equation_Equality eqEquality = eq->getAsEquality();
 			bool left = foldTraverse(eqEquality->left());
 			bool right = foldTraverse(eqEquality->right());
@@ -58,6 +59,13 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 						newEdge.indexInterval.add(discrete_interval<int>::closed(*it, *it));
 						edgeList.push_back(newEdge);
 					}
+				}
+				if(all_indexes){
+					EdgeProperties newEdge;
+					newEdge.genericIndex.first = 1;
+					newEdge.genericIndex.second = 0;
+					newEdge.indexInterval.add(discrete_interval<int>::closed(1, variable.count));
+					edgeList.push_back(newEdge);
 				}
 			}
 			return result;
@@ -130,7 +138,6 @@ Occurrence_checker::add_generic_index(AST_Expression index){
 			}else if(binop->left()->expressionType() == EXPINTEGER || binop->left()->expressionType() == EXPREAL){
 				AST_Expression_Integer _a = binop->left()->getAsInteger();
 				a = _a->val();
-				DEBUG('g', "a: %d\n", a);
 			}else if(binop->left()->expressionType() == EXPCOMPREF){
 				a = 1;		
 			}
@@ -161,15 +168,19 @@ Occurrence_checker::add_generic_index(AST_Expression index){
 void
 Occurrence_checker::arrayOccurrence(AST_Expression_ComponentReference cref_exp){
 	AST_Expression indexExp = cref_exp->indexes()->front()->front();
-	AST_Expression indexResult = evaluator->eval(indexExp);
-	//DEBUG('g', "arrayOccurrence variable %s\n", cref_exp->name().c_str());
-	if(indexResult->expressionType() == EXPINTEGER || indexResult->expressionType() == EXPREAL){
-		simpleIndex.insert(indexResult->getAsInteger()->val());
-	}else if(indexResult->expressionType() == indexExp->expressionType()){
-		add_generic_index(indexExp);		
+	if(indexExp == NULL){
+		//we use the array in all of its indexes
+		all_indexes = true;
 	}else{
-		ERROR("Occurrence_checker::arrayOccurrence: wrong value returned by "
-		      "the evaluator\n");		
+		AST_Expression indexResult = evaluator->eval(indexExp);
+		if(indexResult->expressionType() == EXPINTEGER || indexResult->expressionType() == EXPREAL){
+			simpleIndex.insert(indexResult->getAsInteger()->val());
+		}else if(indexResult->expressionType() == indexExp->expressionType()){
+			add_generic_index(indexExp);		
+		}else{
+			ERROR("Occurrence_checker::arrayOccurrence: wrong value returned by "
+		    	  "the evaluator\n");		
+		}
 	}
 }
 
@@ -191,8 +202,7 @@ Occurrence_checker::foldTraverseElement(AST_Expression exp){
 						exp_cref->print().c_str());
 			}
 			if(variable.isState){
-				ERROR("Occurrence_checker::foldTraverseElement: Error in expression %s. "
-					  "Variable '%s' can only appear as a State variable\n", exp_cref->print().c_str(),exp_cref->names()->front()->c_str());		
+				return false;
 			}
 			if(variable.count != 0){
 				//if its an array
@@ -238,7 +248,6 @@ Occurrence_checker::foldTraverseElement(AST_Expression exp){
 			foreach(it, exp_call->arguments()){
 				result = foldTraverse(current_element(it));
 				if(result){
-					//DEBUG('g', "Expression %s found in function call %s\n", current_element(it)->print().c_str(), exp_call->name()->c_str());
 					break;
 				}
 			}

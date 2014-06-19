@@ -33,5 +33,6 @@ class Occurrence_checker : public AST_Expression_Fold<bool>{
 
 		set< pair<AST_Integer, AST_Integer> > genericIndexSet;
 		boost::icl::discrete_interval<AST_Integer> forIndexInterval;
+		bool all_indexes;
 		set<int> simpleIndex;
 };
