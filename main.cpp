@@ -29,9 +29,7 @@
 #include <util/symbol_table.h>
 #include <causalize/causalization_strategy.h>
 
-/*this includes are for a quick test*/
 #include <causalize/causalize2/graph_builder.h>
-#include <causalize/causalize2/graph_definition.h>
 #include <causalize/causalize2/graph_printer.h>
 #include <causalize/causalize2/causalization_algorithm.h>
 
@@ -66,26 +64,24 @@ int main(int argc, char** argv){
 	TypeSymbolTable ty = newTypeSymbolTable();
 	MMO_Class mmo_class = newMMO_Class(modelica_class, ty); 
 
-	MMO_EquationListIterator mmo_iterator;
-	MMO_EquationList mmo_eqs = mmo_class->getEquations();
-
-	DEBUG('c', "Acausal equations\n");
-	foreach(mmo_iterator, mmo_eqs){
-		DEBUG('c', "%s", current_element(mmo_iterator)->print().c_str());
-	}	
 	ReducedGraphBuilder *gb = new ReducedGraphBuilder(mmo_class);
 	CausalizationGraph g = gb->makeGraph();
 
 	//para debuggeo: crea archivo grafo.dot 
-	GraphPrinter gp(g);
-	gp.printGraph();
+	if(debugIsEnabled('g')){
+		GraphPrinter gp(g);
+		gp.printGraph();
+	}
 
 	CausalizationStrategy2 *cs = new CausalizationStrategy2(g);
 	if(cs->causalize()){
-		cout << "Resultado de la causalizacion:" << endl;
-		cs->print();
+		if(debugIsEnabled('c')){
+			cout << "Result of causalization (variable, [range,] equationID):" << endl;
+			cs->print();
+		}
 	}else{
 		//si no anduvo, probamos con la estrategia clasica
+		DEBUG('c', "Executing the classic strategy\n");
 		CausalizationStrategy *cs_clasica = new CausalizationStrategy(mmo_class);
 		AST_ClassList cl = newAST_ClassList();
 		cs_clasica->causalize(mmo_class->name(), cl);

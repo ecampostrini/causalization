@@ -51,8 +51,8 @@ CausalizationStrategy2::test_intersection(const Edge &e1, const Edge &e2){
 		int a = first(graph[e1].indexInterval), b = last(graph[e1].indexInterval);
 		int c = first(graph[e2].indexInterval), d = last(graph[e2].indexInterval);
 
-		DEBUG('g', "Testing intersection between: [%d, %d](%d, %d), [%d, %d](%d,%d)\n", a,b,graph[e1].genericIndex.first,
-		   graph[e1].genericIndex.second,c,d, graph[e2].genericIndex.first, graph[e2].genericIndex.second);
+		//DEBUG('g', "Testing intersection between: [%d, %d](%d, %d), [%d, %d](%d,%d)\n", a,b,graph[e1].genericIndex.first,
+		//   graph[e1].genericIndex.second,c,d, graph[e2].genericIndex.first, graph[e2].genericIndex.second);
 		
 		if(graph[e1].genericIndex.first > 1){
 			a = graph[e1].genericIndex.first * a + graph[e1].genericIndex.second;		
@@ -223,14 +223,9 @@ CausalizationStrategy2::causalize(){
 				while(_it != _end){
 					Edge e2 = *_it;
 					if(e != e2 && (target(e, graph) == target(e2, graph) || test_intersection(e, e2))){
-					//if(e != e2 && test_intersection(e, e2)){
 						break;				
 					}
 					_it++;
-				}
-				if(e != *it && target(e,graph) == target(*it, graph)){
-					Vertex eq = target(e, graph);
-					cout << "Ejes paralelos entre " << graph[unknown].variableName << " y " << graph[eq].index;
 				}
 				if(_it == _end){
 					//there is no intersection, we causalize it
@@ -249,8 +244,8 @@ CausalizationStrategy2::causalize(){
 		//we have a LOOP or a FOR equation that we don't 
 		//handle at least yet, so we resort to the previous
 		//algorithm
-		//return false;
-		ERROR("Loop detected! We don't handle loops yet!\n");
+		return false;
+		//ERROR("Loop detected! We don't handle loops yet!\n");
 	}
 	return causalize();
 }

@@ -25,6 +25,6 @@ LIB_CAUSALIZE = -lginac
 
 
 bin/causalize2: $(OBJS_CAUSALIZE2)
-	$(CXX) $(CXXFLAGS) $(CAUSALIZE2FLAGS) -o bin/causalize2 $(OBJS_CAUSALIZE2) $(LIB_CAUSALIZE)
+	$(CXX) $(CXXFLAGS) -o bin/causalize2 $(OBJS_CAUSALIZE2) $(LIB_CAUSALIZE)
 
 

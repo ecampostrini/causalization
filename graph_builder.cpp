@@ -9,11 +9,12 @@
 #include <util/ast_util.h>
 #include <mmo/mmo_class.h>
 
-#ifdef ENABLE_DEBUG_MSG
+//#ifdef ENABLE_DEBUG_MSG
+//#define DEBUG_MSG(str) do {std::cout << str << std::endl;} while( false )
+//#else
+//#define DEBUG_MSG(str) do {} while( false )
+//#endif
 #define DEBUG_MSG(str) do {std::cout << str << std::endl;} while( false )
-#else
-#define DEBUG_MSG(str) do {} while( false )
-#endif
 
 using namespace std;
 using namespace boost;
@@ -174,13 +175,12 @@ ReducedGraphBuilder::makeGraph(){
 	//Create the edges 
 	list<Vertex>::iterator eqsIt, unIt;
 	
-	#ifdef ENABLE_DEBUG_MSG
-	if(debugIsEnabled('g')){
-		DEBUG_MSG("Ecuaciones");
+	if(debugIsEnabled('c')){
+		DEBUG_MSG("Equations");
 		foreach(eqsIt, equationDescriptorList){
 			DEBUG_MSG(graph[current_element(eqsIt)].index << ": " << graph[current_element(eqsIt)].equation->print()) ;
 		}
-		DEBUG_MSG("Incognitas");
+		DEBUG_MSG("Unknowns");
 		foreach(unIt, unknownDescriptorList){
 			string var_name;
 			if(graph[current_element(unIt)].isState){
@@ -191,10 +191,8 @@ ReducedGraphBuilder::makeGraph(){
 			DEBUG_MSG(graph[current_element(unIt)].index << ": " << var_name) ;
 		}
 	}
-	#endif
 	
 	Occurrence_checker *oc = new Occurrence_checker(symbolTable);
-	//DEBUG('g', "Adjacency list as (equation_index, unknown_index, number_of_edges) {genericIndex of each edge}:\n");
 	foreach(eqsIt, equationDescriptorList){
 		foreach(unIt,unknownDescriptorList){
 			if(oc->check_occurrence(graph[current_element(unIt)], graph[current_element(eqsIt)].equation)){
@@ -207,36 +205,10 @@ ReducedGraphBuilder::makeGraph(){
 						ERROR("makeGraph: Error while adding the edges to the graph\n");
 					}
 				}
-				//DEBUG('g', "(%d, %d, %d), ", graph[current_element(eqsIt)].index ,graph[current_element(unIt)].index,edgeList.size());
-				/*#ifdef ENABLE_DEBUG_MSG
-				graph_traits<CausalizationGraph>::out_edge_iterator begin, end;			
-				stringstream stri;
-				tie(begin, end) = out_edges(current_element(unIt), graph);
-				stri << "{";
-				while(begin!=end){
-					Vertex eq = target(*begin, graph);
-					if(eq != current_element(eqsIt)){
-						begin++;
-						continue;
-					}
-					if( graph[current_element(begin)].genericIndex.first ){
-						if(!stri.str().empty()) stri << ", ";
-						stri << graph[current_element(begin)].genericIndex.first << " * i + " << graph[current_element(begin)].genericIndex.second;
-						interval_set<int>::iterator it1, it2;
-						it1 = graph[current_element(begin)].indexInterval.begin();
-						it2 = graph[current_element(begin)].indexInterval.end();
-						stri << ", " << first(*it1) << " : " << last(*--it2);
-					}
-					begin++;
-				}
-				stri << "}";
-				cout << stri.str() << endl;
-				#endif
-				*/
 			}
 		}		
 	}
-	DEBUG('g', "\n");
+//	DEBUG('g', "\n");
 	return graph;
 }
 
