@@ -102,13 +102,16 @@ ReducedGraphBuilder::getForRangeSize(MMO_Equation eq){
 	return size;
 }
 
+/*looks for loops with many equations and write them as 
+several loops with only one equation */
+
 void 
 ReducedGraphBuilder::split_for_eqs(){
 	MMO_EquationListIterator it, auxIt;
 
-	for(auxIt = mmo_class->getEquations()->begin(); auxIt != mmo_class->getEquations()->end(); it = auxIt){
-		auxIt++;
-		AST_Equation eq = current_element(it);
+	for(auxIt = mmo_class->getEquations()->begin(), it = auxIt; auxIt != mmo_class->getEquations()->end(); it = auxIt){
+		++auxIt;
+		AST_Equation eq = *it;
 		if(eq->equationType() == EQFOR){
 			AST_Equation_For eqFor = eq->getAsFor();
 			if(eqFor->equationList()->size() > 1){
@@ -129,6 +132,8 @@ CausalizationGraph
 ReducedGraphBuilder::makeGraph(){
 	equationDescriptorList = new list<Vertex>();
 	unknownDescriptorList = new list<Vertex>();
+
+	split_for_eqs();
 	/* Create nodes for the Equations*/
 	MMO_EquationListIterator it;
 	foreach(it, mmo_class->getEquations()){
