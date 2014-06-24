@@ -148,7 +148,7 @@ ReducedGraphBuilder::makeGraph(){
 				}else{
 					vp->isState = false;
 				}
-				vp->count = 0;
+				vp->count = 1;
 				
 			}
 			else if(varType->getType() == TYARRAY){
@@ -157,7 +157,6 @@ ReducedGraphBuilder::makeGraph(){
 					ERROR("ReducedGraphBuilder::makeGraph Arrays of arrays are not supported yet\n");			
 				}
 				if(varInfo->isState()){
-					// que hago acaaa!???		
 					vp->isState = true;
 				}else{
 					vp->isState = false;		

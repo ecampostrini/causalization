@@ -33,14 +33,7 @@ Occurrence_checker::check_occurrence(VertexProperties var, AST_Equation eq){
 			bool left = foldTraverse(eqEquality->left());
 			bool right = foldTraverse(eqEquality->right());
 			result = left || right;
-			if(result && variable.count == 0){
-				//its just a simple var (no array)
-				EdgeProperties newEdge;
-				newEdge.genericIndex.first = newEdge.genericIndex.second = 0;
-				newEdge.indexInterval.add(discrete_interval<int>::open(0, 0));
-				edgeList.push_back(newEdge);
-			}else{
-				//its an array
+			if(result){
 				if(!genericIndexSet.empty()){
 					//occurrence inside a FOR
 					for(set< pair<AST_Integer, AST_Integer> >::iterator it = genericIndexSet.begin(); it != genericIndexSet.end(); it++){
@@ -198,46 +191,34 @@ Occurrence_checker::foldTraverseElement(AST_Expression exp){
 			if(exp_cref->indexes()->size() > 1 || exp_cref->indexes()->front()->size() > 1){
 				ERROR("Occurrence_checker::foldTraverseElement:\n"
 						"Expression : %s\n"
-						"For the momento just variables of the form 'a' or a[index]\n", 
+						"For the momento just variables of the form 'a' or a[index] are allowed\n", 
 						exp_cref->print().c_str());
 			}
 			if(variable.isState){
 				return false;
 			}
-			if(variable.count != 0){
-				//if its an array
-				arrayOccurrence(exp_cref);
-			}else{
-				//if its a simple var we don't care in what kind of equation it
-				// appears
-			}
+			//we treat regualar variables just like arrays
+			arrayOccurrence(exp_cref);
 			return true;
 			break;
 		}
 		case EXPDERIVATIVE:{
-			//if(variable.isState){
-				//bool result = false;
-				AST_Expression_Derivative exp_der = exp->getAsDerivative();
-				ERROR_UNLESS(exp_der->arguments()->size() == 1, "Derivatives can have only one argument\n");
-				ERROR_UNLESS(exp_der->arguments()->front()->expressionType() == EXPCOMPREF, "Only simple variable derivatives are allowed for the moment\n");
-				AST_Expression_ComponentReference exp_cref = exp_der->arguments()->front()->getAsComponentReference();
-				if(exp_cref->names()->front()->compare(variable.variableName)){break;}
-				if(exp_cref->indexes()->size() > 1 || exp_cref->indexes()->front()->size() > 1){
-					ERROR("Occurrence_checker::foldTraverseElement:\n"
-							"Expression : %s\n"
-							"For the momento just variables of the form 'a' or a[index]\n", 
-							exp_cref->print().c_str());
-				}
-				if(variable.count != 0){
-					//if its an array
-					arrayOccurrence(exp_cref);
-				}else{
-					//if its a simple var we don't care in what kind of equation it
-					// appears
-				}
-				//result = foldTraverseElement(exp_der->arguments()->front());
-				return true;
-			//}
+			AST_Expression_Derivative exp_der = exp->getAsDerivative();
+			ERROR_UNLESS(exp_der->arguments()->size() == 1, "Derivatives can have only one argument\n");
+			ERROR_UNLESS(exp_der->arguments()->front()->expressionType() == EXPCOMPREF, "Only simple variable derivatives are allowed for the moment\n");
+			AST_Expression_ComponentReference exp_cref = exp_der->arguments()->front()->getAsComponentReference();
+			if(exp_cref->names()->front()->compare(variable.variableName)){break;}
+			//little assert to be sure!
+			assert(variable.isState);
+			if(exp_cref->indexes()->size() > 1 || exp_cref->indexes()->front()->size() > 1){
+				ERROR("Occurrence_checker::foldTraverseElement:\n"
+						"Expression : %s\n"
+						"For the momento just variables of the form 'a' or a[index]\n", 
+						exp_cref->print().c_str());
+			}
+			//we treat regular variables just like arrays
+			arrayOccurrence(exp_cref);
+			return true;
 			break;
 		}
 		case EXPCALL:{
