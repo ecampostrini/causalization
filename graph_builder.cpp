@@ -102,6 +102,28 @@ ReducedGraphBuilder::getForRangeSize(MMO_Equation eq){
 	return size;
 }
 
+void 
+ReducedGraphBuilder::split_for_eqs(){
+	MMO_EquationListIterator it, auxIt;
+
+	for(auxIt = mmo_class->getEquations()->begin(); auxIt != mmo_class->getEquations()->end(); it = auxIt){
+		auxIt++;
+		AST_Equation eq = current_element(it);
+		if(eq->equationType() == EQFOR){
+			AST_Equation_For eqFor = eq->getAsFor();
+			if(eqFor->equationList()->size() > 1){
+				AST_ForIndexList indexList = eqFor->forIndexList();
+				for(AST_EquationListIterator inner_eq = eqFor->equationList()->begin() ; inner_eq != eqFor->equationList()->end(); inner_eq++){
+					AST_EquationList eqList = newAST_EquationList();
+					eqList->push_back(current_element(inner_eq));
+					AST_Equation newEq = newAST_Equation_For(indexList, eqList);
+					mmo_class->addEquation(newEq);
+				}
+				mmo_class->removeEquation(eq);
+			}
+		}
+	}
+}
 
 CausalizationGraph 
 ReducedGraphBuilder::makeGraph(){

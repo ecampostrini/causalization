@@ -30,6 +30,7 @@ class ReducedGraphBuilder:public GraphBuilder{
 		AST_Integer getForRangeSize(MMO_Equation);
 		AST_Integer getDimension(AST_Expression);
 		AST_Real eval(AST_Expression exp);
+		void split_for_eqs();
 		VarSymbolTable symbolTable;
 		list<Vertex>* equationDescriptorList;
 		list<Vertex>* unknownDescriptorList;
